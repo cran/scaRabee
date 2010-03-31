@@ -2,16 +2,17 @@ require(scaRabee)
 
 # User-prompt: define target directory
 if (interactive()){
-  cat('\nExample 3 - Dosing in model defined with differential equations\n\n')
-
+  cat('\nExample 3 - Simulation of a model defined with ordinary differential equations\n')
+  cat('at the population level\n\n')
+  
   repeat{
     wd <- readline('Enter a path to store the demo files:\n>')
     if (wd!=''){
       if (!file.exists(wd)){
         action <- readline(sprintf(paste('\nDirectory \'%s\' does not exist:\n',
-                                          '  [c] Continue with current working directory: %s\n',
-                                          '  [r] Retry\n',
-                                          '  [a] Abort\n>',sep=''),wd,getwd()))
+              '  [c] Continue with current working directory: %s\n',
+              '  [r] Retry\n',
+              '  [a] Abort\n>',sep=''),wd,getwd()))
         if (action == 'a') {
           stop(call.=FALSE)
         } else if (action == 'c') {
@@ -22,14 +23,14 @@ if (interactive()){
           options(warn=-1)
           nd <- try(file.create(paste(wd,'test.R',sep='')))
           options(warn=0)
-
+          
           if (nd) { # User has permission on directory
             file.remove(paste(wd,'test.R',sep=''))
             break
           }
           cat('\nYou don\'t have permissions on this directory.\n')
         }
-
+        
       } else {
         if (substring(wd,nchar(wd),nchar(wd))!='/'){
           wd <- paste(wd,'/',sep='')
@@ -37,16 +38,16 @@ if (interactive()){
         options(warn=-1)
         nd <- try(file.create(paste(wd,'test.R',sep='')))
         options(warn=0)
-
+        
         if (nd) { # User has permission on directory
           file.remove(paste(wd,'test.R',sep=''))
           break
         }
         cat('\nYou don\'t have permissions on this directory.\n')
       }
-
+      
     } else {
-
+          
       wd <- getwd()
       if (substring(wd,nchar(wd),nchar(wd))!='/'){
         wd <- paste(wd,'/',sep='')
@@ -55,153 +56,101 @@ if (interactive()){
       if (file.exists(wd))
         nd <- try(file.create(paste(wd,'test.R',sep='')))
       options(warn=0)
-
+      
       if (nd) { # User has permission on directory
         file.remove(paste(wd,'test.R',sep=''))
         break
       }
-
+      
       cat('\nYou don\'t have permissions on this directory.\n')
-
+      
     }
   }
 } else {
   return(NULL)
 }
 
-# User-prompt : which dosing history
-repeat{
- dose <- readline('Select a dosing history [1, 2 or 3]:\n>')
-
- if (dose==1 | dose==2 | dose==3) break
- 
-}
-
-# Set file files
+# Set files
 old.wd <- getwd()
-wd <- paste(wd,'example.3/',sep='')
-ana.file <- paste(wd,'example.3.R',sep='')
+wd <- paste(wd,'example3/',sep='')
+ana.file <- paste(wd,'example3.R',sep='')
 data.file <- paste(wd,'data.csv',sep='')
-dosing.file <- paste(wd,'dosing',dose,'.csv',sep='')
 param.file <- paste(wd,'initials.csv',sep='')
-cov.file <- paste(wd,'covariates.csv',sep='')
-model.file <- paste(wd,'model.definition/model.R',sep='')
-var.file <- paste(wd,'model.definition/weighting.R',sep='')
-sec.file <- paste(wd,'model.definition/secondary.R',sep='')
+model.file <- paste(wd,'model.txt',sep='')
 
 # Copy files
-data(example3.covariates,
-     example3.data,
-     example3.dosing1,
-     example3.dosing2,
-     example3.dosing3,
-     example3.initials,
-     example3.model,
-     example3,
-     example3.secondary,
-     example3.weighting)
+data(example3.data,
+  example3.initials)
 
 # Create main and model.definition directory
 if (file.exists(wd)) {
   stop(sprintf(paste('\nDirectory \'%s\' already exists.\nDemo aborted. ',
-                     'Please retry using a different target directory.\n',sep=''),wd),
-       call.=FALSE)
+        'Please retry using a different target directory.\n',sep=''),wd),
+    call.=FALSE)
 }
-
-dir.create(wd)
-dir.create(paste(wd,'model.definition/',sep=''))
+scarabee.new(name='example3',
+  path=wd,
+  type='simulation',
+  method='population',
+  template='ode')
 setwd(wd)
 
-# Create main analysis script
-tmp <- example3
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-tmp <- sapply(tmp, function(x) gsub('@dosing@',paste('dosing',dose,'.csv',sep=''),x))
-write.table(tmp,
-            file=ana.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
+# Update the data file
+write.table(example3.data,
+  file=data.file,
+  sep=',',
+  quote=FALSE,
+  row.names=FALSE,
+  append=FALSE)
 
-# Create input files
-  # Create data file
-  tmp <- example3.data
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=data.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
+# Update the parameter file
+write.table(example3.initials,
+  file=param.file,
+  sep=',',
+  quote=FALSE,
+  row.names=FALSE,
+  col.names=FALSE,
+  append=TRUE)
 
-  # Create dosing file
-  tmp <- eval(parse(text=paste('example3.dosing',dose,sep='')))
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=dosing.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
+# Update the model file
+tmp <- c('$ANALYSIS example3',
+  '',  
+  '$DERIVED',
+  '  if (DOSE[1]==1){',
+  '    F <- F1',
+  '  } else if (DOSE[1]==3){',
+  '    F <- F2',
+  '  } else {',
+  '    F <- F3',
+  '  }',
+  '  if (SC[1]==1) {',
+  '    F <- F/(20000*380)',
+  '  } else {',
+  '    F <- 1/(20000*380)',
+  '  }',
+  '',
+  '$IC',
+  '  init <- c(0,0,0,0,0)',
+  '',
+  '$SCALE',
+  '  scale <- c(1/F,1,1/F,1,1)',
+  '',
+  '$ODE',
+  '  Rf <- Rmax - a5',
+  '  dadt <- rbind(-ka*a1,                                              # SC',
+  '                ka*a1-ka2*a2,                                        # AL',
+  '                ka2*a2+ktp*a4+koff*a5-(kon/Vc)*a3*Rf-(kpt+kloss)*a3, # AP',
+  '                kpt*a3-ktp*a4,                                       # AT',
+  '                (kon/Vc)*a3*Rf-(koff+kint)*a5)                       # DR',
+  '',
+  '$OUTPUT',
+  '  y <- rbind(f[3,]*(20000*380)/Vc)')
+  
+write(tmp,
+  file=model.file,
+  sep='\n',
+  append=FALSE)
 
-  # Create initials file
-  tmp <- example3.initials
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=param.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
-
-  # Create covariates file
-  tmp <- example3.covariates
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=cov.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
-
-# Create variance/weighting file
-tmp <- example3.weighting
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=var.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
-
-# Create secondary file
-tmp <- example3.secondary
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=sec.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
-
-# Create model file
-tmp <- example3.model
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=model.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
-
-# Run example.3
+# Run example 3
 source(ana.file)
 setwd(old.wd)

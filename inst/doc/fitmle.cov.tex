@@ -15,6 +15,8 @@ estimates, confidence intervals and Akaike Information criterion,
 2- It estimates secondary parameters and computes the coefficient of variation
 of those estimates, as well as the confidence intervals.
 
+\code{fitmle.cov} is typically not called directly by users.
+
 \end{Description}
 %
 \begin{Usage}
@@ -28,39 +30,40 @@ of those estimates, as well as the confidence intervals.
 \begin{ldescription}
 \item[\code{problem}] A list containing the following levels:\begin{description}
 
-\item[data] A list containing the following levels:\begin{description}
+\item[data] A list containing as many levels as there are treatment levels 
+for the subject (or population) being evaluated, plus the \code{trts} 
+level listing all treatments for this subject (or population), and the 
+\code{id} level giving the identification number of the subject (or set to
+1 if the analysis was run at the level of the population.
 
-\item[xdata] 1 x m matrix of independent variable.
-\item[ydata] n x m matrix of observations from model states.
-\item[ids] Data.frame of indices for data subsetting (output
-from \code{find.id}).
+Each treatment-specific level is a list containing the following levels: 
+\begin{description}
 
+\item[cov] mij x 3 data.frame containing the times of observations of the
+dependent variables (extracted from the TIME variable), the indicators
+of the type of dependent variables (extracted from the CMT variable),
+and the actual dependent variable observations (extracted from the 
+DV variable) for this particular treatment.
+\item[cov] mij x c data.frame containing the times of observations of 
+the dependent variables (extracted from the TIME variable) and all the
+covariates identified for this particular treatment.
+\item[bolus] bij x 4 data.frame providing the instantaneous inputs 
+for a treatment and individual.
+\item[infusion] fij x (4+c) data.frame providing the zero-order inputs for
+a treatment and individual.
+\item[trt] the particular treatment identifier.
 \end{description}
 
-\item[dosing] A list containing the following levels:\begin{description}
 
-\item[history] d x 4 data.frame of dosing history.
-\item[ids] data.frame of indices for dosing subsetting
-(output from \code{find.id}).
-
-\end{description}
-
-\item[cov] A list containing the following levels:\begin{description}
-
-\item[data] c x t data.frame of covariate history.
-\item[ids] Data.frame of indices for cov subsetting (output
-from \code{find.id}).
-
-\end{description}
-
-\item[states] Indices of the states to be output by the model.
+\item[method] A character string, indicating the scale of the analysis. Should
+be 'population' or 'subject'.
 \item[init] A data.frame of parameter data with the following columns:
 'names', 'type', 'value', 'isfix', 'lb', and 'ub'.
 \item[debugmode] Logical indicator of debugging mode.
 \item[modfun] Model function.
-\item[varfun] Variance function; if empty \code{weighting.additive} is
-used.
-\item[secfun] Secondary parameter function.
+\item[hbsize] An integer scalar providing the size of the history buffer for
+the solver of delay differential equations. This variable is ignored if
+the model file does not contain a \$DDE tag.
 
 \end{description}
 
@@ -88,14 +91,18 @@ The sorting is performed by \code{order.param.list}.
 \item[cor] The upper triangle of the correlation matrix for the parameter
 estimates.
 \item[cv] The coefficients of variations for the parameter estimates.
-\item[delta] The intervals used for the computation of confidence
-intervals.
 \item[ci] The confidence interval for the parameter estimates.
 \item[AIC] The Akaike Information Criterion.
 \item[sec] A list of data related to the secondary parameters, containing
 the following elements:\begin{description}
 
-\item[estimates] A vector of secondary parameter estimates.
+\item[estimates] The vector of secondary parameter estimates calculated
+using the initial estimates of the primary model parameters.
+\item[estimates] The vector of secondary parameter estimates calculated
+using the final estimates of the primary model parameters.
+\item[names] The vector of names of the secondary parameter estimates.
+\item[pder] The matrix of partial derivatives for the secondary
+parameter estimates.
 \item[cov] The matrix of covariance for the secondary parameter
 estimates.
 \item[cv] The coefficients of variations for the secondary parameter
@@ -124,5 +131,5 @@ Los Angeles, 1997.
 \end{References}
 %
 \begin{SeeAlso}\relax
-\code{\LinkA{fitmle}{fitmle}}, \code{\LinkA{order.param.list}{order.param.list}}
+\code{\LinkA{fitmle}{fitmle}}, \code{\LinkA{order.parms.list}{order.parms.list}}
 \end{SeeAlso}

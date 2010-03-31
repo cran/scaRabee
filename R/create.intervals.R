@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -18,44 +18,55 @@
 #    along with scaRabee.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-create.intervals <- function(xdata=NULL,dosing=NULL){
-
-  # Trim dosing of any duplicates time records
-  dosing <- dosing[match(unique(dosing[,1]),dosing[,1]),]
-
+create.intervals <- function(xdata=NULL,bolus=NULL,infusion=NULL){
+  
+  # Trim bolus of any duplicates time records
+  bolus <- bolus[match(unique(bolus[,1]),bolus[,1]),]
+  
   # Determines the min time to start the integration. The maximum has to be
   # the maximum observation time.
-  mintime <- min(c(transpose(dosing[,1]),xdata))
+  if (size(bolus,1)>0) {
+    mintime <- min(c(transpose(bolus[,1]),xdata))
+  } else {
+    if (size(infusion,1)>0) {
+      mintime <- min(c(transpose(infusion[,1]),xdata))
+    } else {
+      mintime <- min(xdata)
+    }
+  }
   maxtime <- max(xdata)
   
-  # Trims dosing from doses over maxtime
-  dosing <- dosing[dosing[,1]<=maxtime,]
+  # Trims bolus from doses over maxtime
+  bolus <- bolus[bolus[,1]<=maxtime,]
   
   # Initializes intervals
-  if (dosing[1,1]==mintime){      # integration starts at first dose
-    intervals <- c()
-  } else {                        # integration starts before first dose
-    intervals <- rbind(mintime,dosing[1,1])
-  }
-  
-  # Buils intervals
-  ndose <- size(dosing,1)
-  for (i in 1:ndose){
-    if (i!=ndose){                 # intermediate dose
-      tmp <- rbind(dosing[i,1],dosing[i+1,1])
-    } else {                       # last dose
-      if (dosing[i,1]==maxtime){     # time of last dose = time of last observation
-        tmp <- NULL
-      } else {                       # otherwise
-        tmp <- rbind(dosing[i,1],maxtime)
-      }
+  if (size(bolus,1)>0) {
+    if (bolus[1,1]==mintime){   # integration starts at first dose
+      intervals <- c()
+    } else {                    # integration starts before first dose
+      intervals <- rbind(mintime,bolus[1,1])
     }
-    intervals <- cbind(intervals,tmp)
+      
+    # Buils intervals
+    ndose <- size(bolus,1)
+    for (i in 1:ndose){
+      if (i!=ndose){                 # intermediate dose
+        tmp <- rbind(bolus[i,1],bolus[i+1,1])
+      } else {                       # last dose
+        if (bolus[i,1]==maxtime){    # time of last dose = time of last observation
+          tmp <- NULL
+        } else {                     # otherwise
+          tmp <- rbind(bolus[i,1],maxtime)
+        }
+      }
+      intervals <- cbind(intervals,tmp)
+    }
+  } else {
+    intervals <- rbind(mintime,maxtime)
   }
-
   row.names(intervals) <- c('start.time','end.time')
-
+  
   return(intervals)
-
+  
 }
 

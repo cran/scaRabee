@@ -1,0 +1,86 @@
+\inputencoding{utf8}
+\HeaderA{dde.model}{Delay Differential Equations}{dde.model}
+\keyword{method}{dde.model}
+%
+\begin{Description}\relax
+\code{dde.model} is the system evaluation function called when a \$DDE block is
+detected in the model file, indicating that the model is defined by delay 
+differential equations. \code{dde.model} is typically not called directly by 
+users
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  dde.model(parms = NULL,
+            derparms = NULL,
+            code = NULL,
+            bolus = NULL,
+            infusion = NULL,
+            xdata = NULL,
+            covdata = NULL,
+            issim = 0,
+            check = FALSE,
+            ddedt = 0.1,
+            hbsize = 10000)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{parms}] A vector of primary parameters.
+\item[\code{derparms}] A list of derived parameters, specified in the \$DERIVED block
+of code.
+\item[\code{code}] A list of R code extracted from the model file. Depending on 
+content of the model file, the levels of this list could be: template,
+derived, lags, ode, dde, output, variance, and/or secondary.
+\item[\code{bolus}] A data.frame providing the instantaneous inputs  entering the 
+system of delay differential equations for the treatment and individual 
+being evaluated.
+\item[\code{infusion}] A data.frame providing the zero-order inputs entering the 
+system of delay differential equations for the treatment and individual 
+being evaluated.
+\item[\code{xdata}] A vector of times at which the system is being evaluated.
+\item[\code{covdata}] A data.frame of covariate data for the treatment and individual 
+being evaluated.
+\item[\code{issim}] An indicator for simulation or estimation runs.
+\item[\code{check}] An indicator whether checks should be performed to validate 
+function inputs.
+\item[\code{ddedt}] A positive numeric scalar providing the step size for the solver 
+of delay differential equations.
+\item[\code{hbsize}] An integer scalar providing the size of the history buffer for
+the solver of delay differential equations.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+\code{dde.model} evaluates the model for each treatment of each individual 
+contained in the dataset using, among other, the dedicated utility functions:
+\code{dde.syst}, \code{dde.lags}, \code{dde.map}, \code{dde.switch}, 
+\code{get.switch.vectors}. The actual evaluation of the system is performed 
+by \code{dde} from the \pkg{PBSddesolving} package.
+
+\code{dde.model} also make use of utility functions which it shares with the 
+other system evaluation functions \code{explicit.model}, and \code{ode.model},
+such as \code{create.intervals}, \code{derived.parms}, \code{init.cond}, 
+\code{input.scaling}, \code{make.dosing}, \code{init.update}, and 
+\code{de.output}.
+\end{Details}
+%
+\begin{Value}
+Returns a matrix of system predictions.
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{dde}{dde}},
+\code{\LinkA{dde.syst}{dde.syst}}, \code{\LinkA{dde.lags}{dde.lags}}, 
+\code{\LinkA{dde.map}{dde.map}}, \code{\LinkA{dde.switch}{dde.switch}},
+\code{\LinkA{get.switch.vectors}{get.switch.vectors}}, 
+\code{\LinkA{explicit.model}{explicit.model}}, \code{\LinkA{ode.model}{ode.model}},
+\code{\LinkA{init.cond}{init.cond}}, \code{\LinkA{input.scaling}{input.scaling}},
+\code{\LinkA{make.dosing}{make.dosing}}, \code{\LinkA{init.update}{init.update}},
+\code{\LinkA{de.output}{de.output}}
+\end{SeeAlso}

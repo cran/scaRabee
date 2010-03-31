@@ -1,4 +1,0 @@
-'start'
-'Dose ID,Time,State,Bolus,Infusion Rate'
-'1,0,1,500,0'
-'1,12,1,500,0'

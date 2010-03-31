@@ -1,6 +1,0 @@
-'start'
-'Parameter,Type,Value,Fixed,Lower bound,Upper bound'
-'ka,P,1,0,0.0001,10'
-'ke,P,0.1,0,0.0001,10'
-'V,P,10,0,0.1,100'
-'CV,V,0.1,0,0.001,1'

@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,9 +19,49 @@
 #
 
 compute.secondary <- function(subproblem=NULL,x=NULL){
-
+  
+  secondary <- function(parms=NULL,codesec=NULL){
+    
+    # Input validation
+    if (is.null(parms))
+      stop('parms argument (primary parameters) is NULL.')
+    
+    if (is.null(codesec))
+      stop('codesec argument (secondary parameters) is NULL.')
+    
+    if (!is.character(codesec))
+      stop('codesec argument must be an object of class \'character\'')
+    
+    if (length(codesec)>1)
+      stop('codesec argument must have a length of 1.')
+    
+    # Evaluation of codeparms
+    objects.new <- with(as.list(parms),{
+      # Get all objects available before evaluation
+      objects.start <- ls(all=TRUE)
+      
+      # Evaluation
+      eval(parse(text=codesec))
+      
+      # Get all objects created by evaluation
+      objects.end <- ls(all=TRUE)
+      objects.end <- objects.end[-which(objects.end=='objects.start')]
+      
+      objects.new <- lapply(objects.end[!objects.end%in%objects.start],
+                            function(x) eval(parse(text=x)))
+      
+      names(objects.new) <- objects.end[!objects.end%in%objects.start]
+      return(objects.new)
+    })
+    
+    secparms <- unlist(objects.new)
+    
+    return(secparms)
+    
+  }
+  
   # Copies subproblem.init in newparam and replaces the new estimates in newparam
-  newparam <- subproblem$init
+  newparam <- initparam <- subproblem$init
   npar     <- length(newparam$names)
   estindex <- 1
   for (i in 1:npar){
@@ -30,23 +70,42 @@ compute.secondary <- function(subproblem=NULL,x=NULL){
       estindex <- estindex + 1
     }
   }
-
-  # Computes initial value of secondary parameters
-  tmp <- do.call(eval(parse(text=subproblem$secfun)),
-                 list(x=subproblem$init))
-    init <- tmp$secparam
-    names <- tmp$names
-  rm(tmp)
   
-  # Computes secondary parameter estimates
-  tmp <- do.call(eval(parse(text=subproblem$secfun)),
-                 list(x=newparam))
-    estimates <- tmp$secparam
-  rm(tmp)
-
-  varargout <- list(init=init,estimates=estimates,names=names)
-
+  # Retrieve initial primary parameters
+  parms <- c(get.parms.data(x=initparam,which='value',type='P'),
+             get.parms.data(x=initparam,which='value',type='L'),
+             get.parms.data(x=initparam,which='value',type='IC'),
+             get.parms.data(x=initparam,which='value',type='V'))
+  names(parms) <- c(get.parms.data(x=initparam,which='names',type='P'),
+                    get.parms.data(x=initparam,which='names',type='L'),
+                    get.parms.data(x=initparam,which='names',type='IC'),
+                    get.parms.data(x=initparam,which='names',type='V'))
+  
+  if (!is.null(subproblem$code$sec)){
+    # Computes initial value of secondary parameters
+    init <- secondary(parms=parms,
+                      codesec=subproblem$code$sec)
+    
+    # Retrieve final primary parameters
+    parms <- c(get.parms.data(x=newparam,which='value',type='P'),
+               get.parms.data(x=newparam,which='value',type='L'),
+               get.parms.data(x=newparam,which='value',type='IC'),
+               get.parms.data(x=newparam,which='value',type='V'))
+    names(parms) <- c(get.parms.data(x=newparam,which='names',type='P'),
+                      get.parms.data(x=newparam,which='names',type='L'),
+                      get.parms.data(x=newparam,which='names',type='IC'),
+                      get.parms.data(x=newparam,which='names',type='V'))
+    
+    # Computes secondary parameter estimates
+    estimates <- secondary(parms=parms,
+                           codesec=subproblem$code$sec)
+    
+    varargout <- list(init=init,estimates=estimates,names=names(init))
+  } else {
+    varargout <- list(init=NULL,estimates=NULL,names=NULL)
+  }
+  
   return(varargout)
-
+  
 }
 

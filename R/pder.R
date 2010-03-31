@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,18 +19,22 @@
 #
 
 pder <- function(subproblem=NULL,x=NULL){
-
+  
   # Evaluate the system at the point estimates
   tmp <- problem.eval(subproblem=subproblem,x=x)
-   F2 <- as.vector(tmp$f)
-   W2 <- as.vector(tmp$weight)
+    F2 <- apply(subproblem$data$data,1,
+                function(x,...) {
+                  tmp$f[x[2]+1,which(tmp$f[1,]==x[1])]},
+                tmp)
+    W2 <- apply(subproblem$data$data,1,
+                function(x,...) {
+                  tmp$weight[x[2]+1,which(tmp$weight[1,]==x[1])]},
+                tmp)
   rm(tmp)
-
+  
   # Remove instances of F2 and W2 corresponding to NaN values in ydata
-  ydata <- as.vector(subproblem$data$ydata)
-  F2 <- F2[which(!is.na(ydata))]
-  W2 <- W2[which(!is.na(ydata))]
-
+  ydata <- subproblem$data$data$DV
+  
   # Compute the partial derivatives
   mpder <- matrix(NA,nrow=length(x),ncol=length(ydata))
   wpder <- matrix(NA,nrow=length(x),ncol=length(ydata))
@@ -39,25 +43,27 @@ pder <- function(subproblem=NULL,x=NULL){
     h <- 1e-7
     x2 <- x
     x2[i] <- x2[i]+h
-
+    
     # Evaluate the system at the point estimates + h
     tmp <- problem.eval(subproblem=subproblem,x=x2)
-      F3 <- as.vector(tmp$f)
-      W3 <- as.vector(tmp$weight)
+      F3 <- apply(subproblem$data$data,1,
+                  function(x,...) {
+                    tmp$f[x[2]+1,which(tmp$f[1,]==x[1])]},
+                  tmp)
+      W3 <- apply(subproblem$data$data,1,
+                  function(x,...) {
+                    tmp$weight[x[2]+1,which(tmp$weight[1,]==x[1])]},
+                  tmp)
     rm(tmp)        
-
-    # Remove instances of F3 and W3 corresponding to NaN values in ydata
-    F3 <- F3[which(!is.na(ydata))]
-    W3 <- W3[which(!is.na(ydata))]
-
+    
+    # Calculate derivatives
     mpder[i,] <- (F3-F2)/h
     wpder[i,] <- (W3-W2)/h
     
   }
-
+  
   varargout <- list(mpder=mpder,wpder=wpder)
-
+  
   return(varargout)
-
+  
 }
-

@@ -1,9 +1,15 @@
-example1     Simulation of a model defined with closed form solution.
+example1     Simulation of a model defined with algebraic equations at the population level
 
-example2     Estimation of a model defined with closed form solution.
+example2     Simulation of inputs into a model defined with ordinary  differential equations
 
-example3     Dosing in model defined with differential equations.
+example3     Simulation of a model defined with ordinary differential equations at the population level
 
-example4     Estimation of a model defined with ordinary differential equations.
+example4     Simulation of a model defined with delay differential equations at the population level
 
-example5     Estimation of a model defined with delay differential equations.
+example5     Estimation of a model defined with algebraic equations at the population level
+
+example6     Simulation of a model defined with ordinary differential equations at the subject level
+
+example7     Estimation of a model defined with algebraic equations at the subject level
+
+example8     Direct grid search for a model defined with delay differential equations

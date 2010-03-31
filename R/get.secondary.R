@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,43 +19,43 @@
 #
 
 get.secondary <- function(subproblem=NULL,x=NULL){
-
+  
   # Computes secondary parameter estimates
   secparam <- compute.secondary(subproblem=subproblem,x=x)
-
+  
   # Computes partial derivatives of secondary parameters
   secparam$pder <- matrix(NA,nrow=length(x),ncol=length(secparam$estimates))
   if (length(secparam$estimates)!=0){
     for (i in 1:length(x)){
       h <- 1e-7 # RTOL ATOL from ode solver
-
+      
       x2 <- x
       x2[i] <- x2[i]+h
-
+      
       tmp <- compute.secondary(subproblem=subproblem,x=x2)
         sec2 <- tmp$estimates
       rm(tmp)
       secparam$pder[i,] <- transpose((sec2-secparam$estimates)/h)
     }
-
+    
     # Reorders param data structure
-    ordered <- order.param.list(x=subproblem$init)
-
+    ordered <- order.parms.list(x=subproblem$init)
+    
     # Filters the param and ordered data structures to get only the estimated
     # parameters
     estparam <- subproblem$init[which(subproblem$init$isfix==0),]
     fixparam <- subproblem$init[which(subproblem$init$isfix==1),]
     estorder <- ordered[which(ordered$isfix==0),]
     fixorder <- ordered[which(ordered$isfix==1),]
-
+    
     # Calculates the number of estimated model and variance parameters
       # p = nb of model parametres
-    p <- length(get.param.data(x=estparam,which='type',type='P'))+ 
-         length(get.param.data(x=estparam,which='type',type='L'))+ 
-         length(get.param.data(x=estparam,which='type',type='IC'))
+    p <- length(get.parms.data(x=estparam,which='type',type='P'))+ 
+         length(get.parms.data(x=estparam,which='type',type='L'))+ 
+         length(get.parms.data(x=estparam,which='type',type='IC'))
       # q = nb of variance parametres
-    q <- length(get.param.data(x=estparam,which='type',type='V'))
-
+    q <- length(get.parms.data(x=estparam,which='type',type='V'))
+    
     # Determines in estparam the corresponding parameter indices from estorder
     indices <- c()
     for (i in 1:(p+q)){
@@ -65,12 +65,12 @@ get.secondary <- function(subproblem=NULL,x=NULL){
          }
       }
     }
-
+    
     # Reorders secparam.pder
-    secparam$pder <- secparam$pder[indices,]
+    secparam$pder <- secparam$pder[indices,,drop=FALSE]
   }
-
+  
   return (secparam)
-
+  
 }
 

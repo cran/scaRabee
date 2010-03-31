@@ -1,4 +1,4 @@
-%Copyright (c) 2009, 2010 Sebastien Bihorel
+%Copyright (c) 2009-2011 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -23,8 +23,10 @@
   Forces parameter estimates between defined boundaries.
 }
 \description{
-  \code{bound.parameters} is a utility function called during estimation runs. It forces the parameter
-  estimates to remain within the boundaries defined in the .csv file of initial estimates.
+  \code{bound.parameters} is a utility function called during estimation runs. 
+  It forces the parameter estimates to remain within the boundaries defined in 
+  the .csv file of initial estimates. \code{bound.parameters} is typically not 
+  called directly by users.
 }
 \usage{
   bound.parameters(x = NULL,
@@ -39,7 +41,8 @@
 }
 
 \value{
-  Returns a vector of \emph{p} values. The ith element of the returned vector is: \itemize{
+  Returns a vector of \emph{p} values. The ith element of the returned vector 
+  is: \itemize{
     \item x[i]  if lb[i] < x[i] < ub[i]
     \item lb[i] if x[i] <= lb[i]
     \item ub[i] if ub[i] <= x[i]

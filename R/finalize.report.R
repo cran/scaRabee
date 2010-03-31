@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -43,11 +43,11 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
                    'Parameter','value','value','CV%','Confidence interval (95%)'))
 
   write(tmp,file=files$report,append=TRUE,sep='\n')
-
+  
 # Need to reorder the fixed parameters as fitmle_cov did for estimated
 # parameters (Fit$orderedestimations)
   # Determines which parameters were estimated or fixed
-  ordered <- order.param.list(x=problem$init)
+  ordered <- order.parms.list(x=problem$init)
   estparam <- problem$init[which(problem$init$isfix==0),]
   fixparam <- problem$init[which(problem$init$isfix==1),]
   estorder <- ordered[which(ordered$isfix==0),]
@@ -55,15 +55,15 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
 
   # Calculates the number of fixed model and variance parameters
     # p = nb of model parametres
-  p <- length(get.param.data(x=fixparam,which='type',type='P')) +
-       length(get.param.data(x=fixparam,which='type',type='L')) +
-       length(get.param.data(x=fixparam,which='type',type='IC'))
+  p <- length(get.parms.data(x=fixparam,which='type',type='P')) +
+       length(get.parms.data(x=fixparam,which='type',type='L')) +
+       length(get.parms.data(x=fixparam,which='type',type='IC'))
     # q = nb of variance parametres
-  q <- length(get.param.data(x=fixparam,which='type',type='V'))
+  q <- length(get.parms.data(x=fixparam,which='type',type='V'))
   
   # Determines in fixparam the corresponding parameter indices from fixorder
   indices <- NULL
-  if ((p+q)!=0){  
+  if ((p+q)!=0){
     for (i in 1:(p+q)){
       for (j in 1:(p+q)){
          if (fixparam$names[j]==fixorder$names[i]){
@@ -107,14 +107,14 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
 # Builds and writes each line of the estimation table
   # first the block of estimated parameters
     # nb of model parametres
-  nemodpar <- length(get.param.data(x=Fit$orderedestimations,which='type',type='P'))+
-              length(get.param.data(x=Fit$orderedestimations,which='type',type='L'))+
-              length(get.param.data(x=Fit$orderedestimations,which='type',type='IC'))
+  nemodpar <- length(get.parms.data(x=Fit$orderedestimations,which='type',type='P'))+
+              length(get.parms.data(x=Fit$orderedestimations,which='type',type='L'))+
+              length(get.parms.data(x=Fit$orderedestimations,which='type',type='IC'))
     # nb of variance parametres
-  nevarpar <- length(get.param.data(x=Fit$orderedestimations,which='type',type='V'))
-
+  nevarpar <- length(get.parms.data(x=Fit$orderedestimations,which='type',type='V'))
+  
   nepar   <- nemodpar+nevarpar
-
+  
   if (nepar>=1){
     for (i in 1:nepar){
       lenname <- nchar(Fit$orderedestimations$names[i])
@@ -123,20 +123,26 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
                          Fit$orderedestimations$names[i],
                          sprintf('%10.4g', Fit$orderedinitial$value[i]),
                          sprintf('%10.4g', Fit$orderedestimations$value[i]),
-                         sprintf('%10.3g', Fit$cv[i]),
-                         sprintf('%10.4g', Fit$ci[i,1]),
-                         sprintf('%10.4g', Fit$ci[i,2]))
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.3g', Fit$cv[i])),
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.4g', Fit$ci[i,1])),
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.4g', Fit$ci[i,2])))
       write(tabline,file=files$report,append=TRUE,sep='\n')
     }
   }
   
   # then the block of fixed parameters
     # nb of model parametres
-  nfmodpar <- length(get.param.data(x=Fit$orderedfixed,which='type',type='P'))+
-              length(get.param.data(x=Fit$orderedfixed,which='type',type='L'))+
-              length(get.param.data(x=Fit$orderedfixed,which='type',type='IC'))
+  nfmodpar <- length(get.parms.data(x=Fit$orderedfixed,which='type',type='P'))+
+              length(get.parms.data(x=Fit$orderedfixed,which='type',type='L'))+
+              length(get.parms.data(x=Fit$orderedfixed,which='type',type='IC'))
     # nb of variance parametres
-  nfvarpar <- length(get.param.data(x=Fit$orderedfixed,which='type',type='V'))
+  nfvarpar <- length(get.parms.data(x=Fit$orderedfixed,which='type',type='V'))
   
   nfpar <- nfmodpar+nfvarpar
   
@@ -152,141 +158,164 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
     }
   }
   
-  # Adds the correlation matrix
-  write(sprintf('\n\n%s\n', 'Correlation matrix'),
-        file=files$report,append=TRUE,sep='\n')
-
-  tmpform <- rep(' ',maxlen)
-
-  for (i in 1:(nepar-1)){
-    tmpmax <- max(10,nchar(Fit$orderedestimations$names[i]))
-    tmpform <- paste(c(tmpform,
-                       rep(' ',tmpmax-nchar(Fit$orderedestimations$names[i])+2),
-                       '%s'),
-                     collapse='')
-  }
-  tmpmax <- max(10,nchar(Fit$orderedestimations$names[nepar]))
-  tmpform <- paste(c(tmpform,
-                     rep(' ',tmpmax-nchar(Fit$orderedestimations$names[nepar])+2),
-                     '%s'),
-                   collapse='')
-  write(do.call(sprintf,
-                c(list(tmpform),
-                  as.list(Fit$orderedestimations$names))),
-        file=files$report,append=TRUE,sep='\n')
-
-  cormat <- transpose(Fit$cor)
-  
-  for (i in 1:nepar){
-    tmp <- c()
-    lenname <- nchar(Fit$orderedestimations$names[i])
-    tmp[1] <- paste(c(Fit$orderedestimations$names[i],
-                      rep(' ',maxlen-lenname+2)),collapse='')
-                      
-    for (j in 2:(nepar+1)){
-      lenname <- nchar(Fit$orderedestimations$names[j-1])
-      tmpmax <- max(10,lenname)
-      tmpmin <- min(maxlen,lenname)
-      # Report only by block, assuming no covariance between model and rv parameters
-      if ((i<=nemodpar & (j-1)<=nemodpar) |
-          ((i>nemodpar & (j-1)>nemodpar))){
-        if (i<(j-1)){
-          tmp[j] <- paste(c(rep(' ',tmpmax-1),'-'),collapse='')
-        } else {
-          if (abs(cormat[i,j-1])<.Machine$double.eps){
-            # ROund to 0 if below precision limit
-            tmp[j] <- paste(c(rep(' ',tmpmax-1),'0'),collapse='')
-          } else {
-            tmp[j] <- sprintf('%10.3g', cormat[i,j-1])
-            if ((tmpmin-nchar(tmp[j]))>=0){
-              tmp[j] <- paste(c(rep(' ',tmpmin-nchar(tmp[j])),tmp[j]),
-                              collapse='')
-            }
-          }
-        }
-        tmp[j] <- paste(c(tmp[j],'  '),collapse='')
-      } else {
-        tmp[j] <- paste(c(rep(' ',tmpmax-1),'-  '),collapse='')
-      }
-    }
-    write(do.call(sprintf,
-                  c(list(paste(rep('%s',nepar+1),collapse='')),
-                    as.list(tmp))),
-          file=files$report,append=TRUE,sep='\n')
-  }
-  
   # Adds the covariance matrix
   write(sprintf('\n\n%s\n', 'Covariance matrix'),
         file=files$report,append=TRUE,sep='\n')
-
-  tmpform <- rep(' ',maxlen)
-
-  for (i in 1:(nepar-1)){
-    tmpmax <- max(10,nchar(Fit$orderedestimations$names[i]))
-    tmpform <- paste(c(tmpform,
-                       rep(' ',tmpmax-nchar(Fit$orderedestimations$names[i])+2),
-                       '%s'),
-                     collapse='')
-  }
-  tmpmax <- max(10,nchar(Fit$orderedestimations$names[nepar]))
-  tmpform <- paste(c(tmpform,
-                     rep(' ',tmpmax-nchar(Fit$orderedestimations$names[nepar])+2),
-                     '%s'),
-                   collapse='')
-  write(do.call(sprintf,
-                c(list(tmpform),
-                  as.list(Fit$orderedestimations$names))),
-        file=files$report,append=TRUE,sep='\n')
-
-  covmat <- Fit$cov
   
-  for (i in 1:nepar){
-    tmp <- list()
-    lenname <- nchar(Fit$orderedestimations$names[i])
-    tmp[[1]] <- paste(c(Fit$orderedestimations$names[i],
-                        rep(' ',maxlen-lenname+2)),collapse='')
-
-    for (j in 2:(nepar+1)){
-      lenname <- nchar(Fit$orderedestimations$names[j-1])
-      tmpmax <- max(10,lenname)
-      tmpmin <- min(maxlen,lenname)
-      # Report only by block, assuming no covariance between model and rv parameters
-      if ((i<=nemodpar & (j-1)<=nemodpar) |
-          ((i>nemodpar & (j-1)>nemodpar))){
-        if (i<(j-1)){
-          tmp[j] <- paste(c(rep(' ',tmpmax-1),'-'),collapse='')
-        } else {
-          if (abs(cormat[i,j-1])<.Machine$double.eps){
-            # ROund to 0 if below precision limit
-            tmp[j] <- paste(c(rep(' ',tmpmax-1),'0'),collapse='')
-          } else {
-            tmp[j] <- sprintf('%10.3g', covmat[i,j-1])
-            if ((tmpmin-nchar(tmp[j]))>=0){
-              tmp[j] <- paste(c(rep(' ',tmpmin-nchar(tmp[j])),tmp[j]),
-                              collapse='')
+  if (nepar==1){
+    write(' Not available when only one parameter is estimated.\n',
+          file=files$report,append=TRUE,sep='\n')
+  } else {
+    if (any(Fit$cov=='singular')){
+      write(' M matrix singular - Covariance matrix unobtainable.\n',
+            file=files$report,append=TRUE,sep='\n')
+    } else {
+      tmpform <- rep(' ',maxlen)
+    
+      for (i in 1:(nepar-1)){
+        tmpmax <- max(10,nchar(Fit$orderedestimations$names[i]))
+        tmpform <- paste(c(tmpform,
+                           rep(' ',
+                               tmpmax-nchar(Fit$orderedestimations$names[i])+2),
+                           '%s'),
+                         collapse='')
+      }
+      tmpmax <- max(10,nchar(Fit$orderedestimations$names[nepar]))
+      tmpform <- paste(c(tmpform,
+                         rep(' ',
+                             tmpmax-nchar(Fit$orderedestimations$names[nepar])+2),
+                         '%s'),
+                       collapse='')
+      write(do.call(sprintf,
+                    c(list(tmpform),
+                      as.list(Fit$orderedestimations$names))),
+            file=files$report,append=TRUE,sep='\n')
+      
+      covmat <- Fit$cov
+      
+      for (i in 1:nepar){
+        tmp <- list()
+        lenname <- nchar(Fit$orderedestimations$names[i])
+        tmp[[1]] <- paste(c(Fit$orderedestimations$names[i],
+                            rep(' ',maxlen-lenname+2)),collapse='')
+        
+        for (j in 2:(nepar+1)){
+          lenname <- nchar(Fit$orderedestimations$names[j-1])
+          tmpmax <- max(10,lenname)
+          tmpmin <- min(maxlen,lenname)
+          # Report only by block, assuming no covariance between model and rv 
+          # parameters
+          if ((i<=nemodpar & (j-1)<=nemodpar) |
+              ((i>nemodpar & (j-1)>nemodpar))){
+            if (i<(j-1)){
+              tmp[j] <- paste(c(rep(' ',tmpmax-1),'-'),collapse='')
+            } else {
+              if (abs(covmat[i,j-1])<.Machine$double.eps){
+                # Round to 0 if below precision limit
+                tmp[j] <- paste(c(rep(' ',tmpmax-1),'0'),collapse='')
+              } else {
+                tmp[j] <- sprintf('%10.3g', covmat[i,j-1])
+                if ((tmpmin-nchar(tmp[j]))>=0){
+                  tmp[j] <- paste(c(rep(' ',tmpmin-nchar(tmp[j])),tmp[j]),
+                                  collapse='')
+                }
+              }
             }
+            tmp[j] <- paste(c(tmp[j],'  '),collapse='')
+          } else {
+            tmp[j] <- paste(c(rep(' ',tmpmax-1),'-  '),collapse='')
           }
         }
-        tmp[j] <- paste(c(tmp[j],'  '),collapse='')
-      } else {
-        tmp[j] <- paste(c(rep(' ',tmpmax-1),'-  '),collapse='')
+        write(do.call(sprintf,
+                      c(list(paste(rep('%s',nepar+1),collapse='')),
+                        as.list(tmp))),
+              file=files$report,append=TRUE,sep='\n')
       }
     }
-    write(do.call(sprintf,
-                  c(list(paste(rep('%s',nepar+1),collapse='')),
-                    as.list(tmp))),
-          file=files$report,append=TRUE,sep='\n')
   }
-
-# Add secondary parameter stats
+      
+  # Adds the correlation matrix
+  write(sprintf('\n\n%s\n', 'Correlation matrix'),
+        file=files$report,append=TRUE,sep='\n')
   
+  if (nepar==1){
+    write(' Not available when only one parameter is estimated.\n',
+          file=files$report,append=TRUE,sep='\n')
+  } else {
+    if (any(Fit$cov=='singular')){
+      write(' M matrix singular - correlation matrix unobtainable.\n',
+            file=files$report,append=TRUE,sep='\n')
+    } else { 
+      tmpform <- rep(' ',maxlen)
+      for (i in 1:(nepar-1)){
+        tmpmax <- max(10,nchar(Fit$orderedestimations$names[i]))
+        tmpform <- paste(c(tmpform,
+                           rep(' ',
+                               tmpmax-nchar(Fit$orderedestimations$names[i])+2),
+                           '%s'),
+                         collapse='')
+      }
+      tmpmax <- max(10,nchar(Fit$orderedestimations$names[nepar]))
+      tmpform <- paste(c(tmpform,
+                         rep(' ',
+                             tmpmax-nchar(Fit$orderedestimations$names[nepar])+2),
+                         '%s'),
+                       collapse='')
+      write(do.call(sprintf,
+                    c(list(tmpform),
+                    as.list(Fit$orderedestimations$names))),
+            file=files$report,append=TRUE,sep='\n')
+          
+      cormat <- transpose(Fit$cor)
+      
+      for (i in 1:nepar){
+        tmp <- c()
+        lenname <- nchar(Fit$orderedestimations$names[i])
+        tmp[1] <- paste(c(Fit$orderedestimations$names[i],
+                        rep(' ',maxlen-lenname+2)),collapse='')
+        
+        for (j in 2:(nepar+1)){
+          lenname <- nchar(Fit$orderedestimations$names[j-1])
+          tmpmax <- max(10,lenname)
+          tmpmin <- min(maxlen,lenname)
+          # Report only by block, assuming no covariance between model and rv parameters
+          if ((i<=nemodpar & (j-1)<=nemodpar) |
+              ((i>nemodpar & (j-1)>nemodpar))){
+            if (i<(j-1)){
+              tmp[j] <- paste(c(rep(' ',tmpmax-1),'-'),collapse='')
+            } else {
+              if (abs(cormat[i,j-1])<.Machine$double.eps){
+                # Round to 0 if below precision limit
+                tmp[j] <- paste(c(rep(' ',tmpmax-1),'0'),collapse='')
+              } else {
+                tmp[j] <- sprintf('%10.3g', cormat[i,j-1])
+                if ((tmpmin-nchar(tmp[j]))>=0){
+                  tmp[j] <- paste(c(rep(' ',tmpmin-nchar(tmp[j])),tmp[j]),
+                    collapse='')
+                }
+              }
+            }
+            tmp[j] <- paste(c(tmp[j],'  '),collapse='')
+          } else {
+            tmp[j] <- paste(c(rep(' ',tmpmax-1),'-  '),collapse='')
+          }
+        }
+        write(do.call(sprintf,
+                      c(list(paste(rep('%s',nepar+1),collapse='')),
+                        as.list(tmp))),
+              file=files$report,append=TRUE,sep='\n')
+      }
+    }
+  }
+  
+# Add secondary parameter stats
   if (size(Fit$sec$names,1)!=0){
     # Calculates the dimension of the longest parameter name
     maxlen <- max(9,max(nchar(Fit$sec$names)))
     
     write(sprintf('\n\n%s\n', 'Secondary parameter(s)'),
           file=files$report,append=TRUE,sep='\n')
-
+    
     # Builds and writes the 2 lines of the estimation table title 
     tmp <- sprintf(paste(c(rep(' ',maxlen+6),'%s       %s'),
                          collapse=''),'Initial','Final')
@@ -294,31 +323,59 @@ finalize.report <- function(problem=NULL,Fit=NULL,files=NULL){
              sprintf(paste(c(' %s',rep(' ',maxlen-9+6),'%s        ',
                              '%s         ','%s      %s'),collapse=''),
                      'Parameter','value','value','CV%','Confidence interval (95%)'))
-
+    
     write(tmp,file=files$report,append=TRUE,sep='\n')
-  
+    
     # Builds and writes each line of the computation table
-    for (i in 1:size(Fit$sec$names,1)){
+    for (i in 1:length(Fit$sec$names)){
       lenname <- nchar(Fit$sec$names[i])
       tabline <- sprintf(paste(c(' %s',rep(' ',maxlen-lenname+2),
                                  '%s   %s  %s     [%s, %s]'),collapse=''),
                          Fit$sec$names[i],
                          sprintf('%10.4g', Fit$sec$init[i]),
                          sprintf('%10.4g', Fit$sec$estimates[i]),
-                         sprintf('%10.3g', Fit$sec$cv[i]),
-                         sprintf('%10.4g', Fit$sec$ci[i,1]),
-                         sprintf('%10.4g', Fit$sec$ci[i,2]))
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.3g', Fit$sec$cv[i])),
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.4g', Fit$sec$ci[i,1])),
+                         ifelse(any(Fit$cov=='singular'),
+                                '        NA',
+                                sprintf('%10.4g', Fit$sec$ci[i,2])))
       write(tabline,file=files$report,append=TRUE,sep='\n')    
     }
-
+    
   } else {
-
+    
     write(sprintf('\n\n%s\n', 'No secondary parameter'),
           file=files$report,append=TRUE,sep='\n')
   
   }
 
+# Output parameter estimates to estimate file
+  tmp <- problem$init[,c('names','value','isfix')]
+  tmp$order <- 1:size(tmp,1)
+  estimates <- merge(tmp,Fit$orderedestimations,by='names',all=TRUE,sort=FALSE)
+  estimates$value <- ifelse(is.na(estimates$value.y),
+                            estimates$value.x,
+                            estimates$value.y)
+  estimates <- estimates[order(estimates$order),]
+  
+  # Creates and populates the estimate file if necessary
+  if (problem$data$id==1)  
+    write(paste(c('ID',estimates$names,Fit$sec$names),collapse=','),
+          file=files$est,append=FALSE,sep='\n')
+  
+  tmpform <- paste(c('%d,',
+                     rep('%0.5g,',size(estimates,1)-1+length(Fit$sec$estimates)),
+                     '%0.5g'), collapse='')
+  estimates <- c(problem$data$id,estimates$value,Fit$sec$estimates)
+  
+  write(do.call(sprintf,c(list(tmpform),as.list(estimates))),
+        file=files$est,append=TRUE,sep='\n')
+  
   return(Fit)
-
+  
 }
 

@@ -1,4 +1,4 @@
-%Copyright (c) 2009, 2010 Sebastien Bihorel
+%Copyright (c) 2009-2011 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -25,42 +25,53 @@
 \description{
   \code{problem.eval} is a secondary function called during estimation runs. It 
   evaluates the structural model and the residual variability model at given
-  point estimates and at given values of the independent variable (typically
-  time).
+  point estimates and at given values of the time variable. \code{problem.eval} 
+  is typically not called directly by users.
 }
 \usage{
   problem.eval(subproblem = NULL,
-               x = NULL)
+               x = NULL,
+               grid = FALSE,
+               check = FALSE)
 }
 \arguments{
   \item{subproblem}{A list containing the following levels:\describe{
-     \item{data}{A list containing the following levels:\describe{
-                  \item{xdata}{1 x m matrix of independent variable.}
-                  \item{ydata}{n x m matrix of observations from model states.}
-                  \item{ids}{Data.frame of indices for data subsetting (output
-                    from \code{find.id}).}
-                }}
-     \item{dosing}{A list containing the following levels:\describe{
-                     \item{history}{d x 4 data.frame of dosing history.}
-                     \item{ids}{data.frame of indices for dosing subsetting
-                       (output from \code{find.id}).}
-                  }}
-     \item{cov}{A list containing the following levels:\describe{
-                  \item{data}{c x t data.frame of covariate history.}
-                  \item{ids}{Data.frame of indices for cov subsetting (output
-                    from \code{find.id}).}
-               }}
-     \item{states}{Indices of the states to be output by the model.}
-     \item{init}{A data.frame of parameter data with the following columns:
-       'names', 'type', 'value', 'isfix', 'lb', and 'ub'.}
-     \item{debugmode}{Logical indicator of debugging mode.}
-     \item{modfun}{Model function.}
-     \item{varfun}{Variance function; if empty \code{weighting.additive} is
-       used.}
-     \item{secfun}{Secondary parameter function.}
-     }
+    \item{code}{A list of R code extracted from the model file. Depending on 
+      content of the model file, the levels of this list could be: template,
+      derived, lags, ode, dde, output, variance, and/or secondary.}
+    \item{method}{A character string, indicating the scale of the analysis. Should
+      be 'population' or 'subject'.}
+    \item{init}{A data.frame of parameter data with the following columns:
+      'names', 'type', 'value', 'isfix', 'lb', and 'ub'.}
+    \item{debugmode}{Logical indicator of debugging mode.}
+    \item{modfun}{Model function.}
+    \item{hbsize}{An integer scalar providing the size of the history buffer for
+      the solver of delay differential equations. This variable is ignored if
+      the model file does not contain a $DDE tag.}
+    \item{data}{A list containing the following levels:\describe{
+      \item{xdata}{1 x m matrix of time of observations of the dependent
+        variables.}
+      \item{data}{m x 3 data.frame containing the times of observations of the
+        dependent variables (extracted from the TIME variable), the indicators 
+        of the type of dependent variables (extracted from the CMT variable), 
+        and the actual dependent variable observations (extracted from the DV 
+        variable).}
+      }
+    }
+    \item{bolus}{bij x 4 data.frame providing the instantaneous inputs for a
+      treatment and individual.}
+    \item{infusion}{fij x (4+c) data.frame providing the zero-order inputs for a
+      treatment and individual.}
+    \item{cov}{mij x c data.frame containing the times of observations of the 
+      dependent variables (extracted from the TIME variable) and all the
+      covariates identified for this particular treatment.}
+    }
   }
   \item{x}{A vector of numerical estimates of numerical parameters.}
+  \item{grid}{A logical variable, indicating whether the analysis is a direct
+    grid search or not.}
+  \item{check}{An indicator whether checks should be performed to validate 
+    function inputs.}
 }
 \value{
   Return a list of two elements: \describe{

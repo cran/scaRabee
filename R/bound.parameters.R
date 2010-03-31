@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -21,7 +21,7 @@
 bound.parameters <- function(x=NULL,lb=NULL,ub=NULL){
 
   if (any(dim(x)!=dim(lb)) | any(dim(x)!=dim(ub))){
-    stop('x, lb, and ub do not have the same dimensions.')
+    stop('  x, lb, and ub arguments do not have the same dimensions.')
   }
   
   newx <- x

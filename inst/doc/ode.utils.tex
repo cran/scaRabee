@@ -1,0 +1,167 @@
+\inputencoding{utf8}
+\HeaderA{ode.utils}{Utility Functions for Ordinary Differential Equation Systems}{ode.utils}
+\aliasA{create.intervals}{ode.utils}{create.intervals}
+\aliasA{de.output}{ode.utils}{de.output}
+\aliasA{derived.parms}{ode.utils}{derived.parms}
+\aliasA{init.cond}{ode.utils}{init.cond}
+\aliasA{init.update}{ode.utils}{init.update}
+\aliasA{input.scaling}{ode.utils}{input.scaling}
+\aliasA{make.dosing}{ode.utils}{make.dosing}
+\aliasA{ode.syst}{ode.utils}{ode.syst}
+\keyword{method}{ode.utils}
+%
+\begin{Description}\relax
+This is a collection of utility functions called by \code{ode.model} (and for 
+some by \code{dde.model} when a model defined by ordinary (or delay)
+differential equations is evaluated. None of these functions is typically 
+called directly by users.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  ode.syst(t = NULL,
+           y = NULL,
+           parms = NULL,
+           derparms = NULL,
+           codeode = NULL,
+           dosing = NULL,
+           has.dosing = NULL,
+           dose.states = NULL,
+           xdata = NULL,
+           covdata = NULL,
+           scale = NULL,
+           check = FALSE)
+  create.intervals(xdata = NULL,
+                   bolus = NULL,
+                   infusion = NULL)
+  de.output(f = NULL,
+            parms = NULL,
+            derparms = NULL,
+            codeoutput = NULL,
+            dosing = NULL,
+            xdata = NULL,
+            check = FALSE)
+  derived.parms(parms = NULL,
+                covdata,
+                codederiv = NULL,
+                check = FALSE)
+  init.cond(parms = NULL,
+            derparms = NULL,
+            codeic = NULL,
+            dosing = NULL,
+            check = FALSE)
+  input.scaling(parms = NULL,
+                derparms = NULL,
+                codescale = NULL,
+                ic = NULL,
+                check = FALSE)
+  make.dosing(derparms = NULL,
+              bolus = NULL,
+              infusion = NULL,
+              check = FALSE)
+  init.update(a = NULL,
+              t = NULL,
+              dosing = NULL,
+              scale = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{t}] A scalar or a vector of numerical time values.
+\item[\code{y}] A vector of system state values.
+\item[\code{parms}] A vector of primary parameters.
+\item[\code{derparms}] A list of derived parameters, specified in the \$DERIVED block
+of code.
+\item[\code{codeode}] The content of the R code specified within the \$ODE block 
+in the model file.
+\item[\code{dosing}] A data.frame of dosing information created by \code{make.dosing}
+from instantaneous and zero-order inputs into the system and containing the 
+following columns: \begin{description}
+
+\item[TIME] Dosing event times.
+\item[CMT] State where the input should be assigned to.
+\item[AMT] Amount that should be assigned to system \code{state} at the
+corresponding \code{TIME}.
+\item[RATE] Rate of input that should be assigned to system \code{CMT} at 
+the corresponding \code{TIME}. See 
+\code{vignette('scaRabee',package='scaRabee')} for more details about
+the interpolation of the input rate at time not specified in
+\code{dosing}.
+\item[TYPE] An indicator of the type of input. \code{TYPE} is set to 1 if
+the record in \code{dosing} correspond an original bolus input; it is 
+set to 0 otherwise.
+
+\end{description}
+
+
+\item[\code{has.dosing}] A logical variable, indicating whether any input has to
+be assigned to a system state.
+\item[\code{dose.states}] A vector of integers, indicating in which system state one
+or more doses have to be assigned to.
+\item[\code{xdata}] A vector of times at which the system is being evaluated.
+\item[\code{check}] An indicator whether checks should be performed to validate 
+function inputs
+\item[\code{bolus}] bij x 4 data.frame providing the instantaneous inputs for a 
+treatment and individual.
+\item[\code{infusion}] fij x (4+c) data.frame providing the zero-order inputs for a
+treatment and individual.
+\item[\code{f}] A matrix of time (first row) and system predictions. In the 
+\code{de.output} function, the first row is deleted so that \code{f} has
+the same number of rows as in \code{dadt} defined in the \$ODE or \$DDE block.
+\item[\code{codeoutput}] The content of the R code specified within the \$OUTPUT block 
+in the model file.
+\item[\code{covdata}] A matrix of covariate data extracted from the dataset.
+\item[\code{codederiv}] The content of the R code specified within the \$DERIVED block 
+in the model file.
+\item[\code{codeic}] The content of the R code specified within the \$IC block in the 
+model file.
+\item[\code{codescale}] The content of the R code specified within the \$SCALE block 
+in the model file.
+\item[\code{ic}] A vector of initial conditions, typically returned by \code{init}
+\item[\code{scale}] A vector of system scale, typically returned by 
+\code{input.scaling}
+\item[\code{a}] A vector of system state values, similar to \code{y}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+\code{ode.syst} is the function which actually evaluates the system of
+ordinary differential equations specified in the \$ODE block.
+
+\code{create.intervals} is a function that allows the overall integration 
+interval to be split into sub-intervals based upon dosing history.
+This allows for the exact implementation of bolus inputs into the system. It
+determines the number of unique bolus dosing events there is by system state 
+in \code{dosing}. It then creates the sub-intervals using these unique event 
+times. If the first dosing events occurs after the first observation time, an 
+initial sub-interval is added.
+
+\code{de.output} is the function which evaluates the code specified in the 
+\$OUTPUT block and, thus, defines the output of the model.
+
+\code{derived.parms} is the function which evaluates the code provided in the
+\$DERIVED block and calculate derived parameters.
+
+\code{init.cond} is the function which evaluates the code provided in the \$IC
+block, and, thus, defines the initial conditions of the system.
+
+\code{input.scaling} is the function which evaluates the code provided in the
+\$SCALE block, and, thus, defines how system inputs are scaled.
+
+\code{make.dosing} is the function which processes the instantaneous and 
+zero-order inputs provided in the dataset and creates the \code{dosing} 
+object.
+
+\code{init.update} is a function that updates the system states at the 
+beginning of each integration interval created by \code{create.intervals} to 
+provide an exact implementation of bolus inputs into the system.
+\end{Details}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{dde.model}{dde.model}}
+\end{SeeAlso}

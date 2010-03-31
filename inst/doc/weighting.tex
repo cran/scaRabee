@@ -1,0 +1,43 @@
+\inputencoding{utf8}
+\HeaderA{weighting}{Residual Variability}{weighting}
+\keyword{method}{weighting}
+%
+\begin{Description}\relax
+\code{weighting} is a secondary function called during estimation run to
+evaluate the model(s) of residual variability specified by the code provided
+in the \$VARIANCE block. \code{weighting} is typically not called directly by
+users.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  weighting(parms = NULL,
+            derparms = NULL,
+            codevar=NULL,
+            y=NULL,
+            xdata=NULL,
+            check=FALSE)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{parms}] A vector of primary parameters.
+\item[\code{derparms}] A list of derived parameters, specified in the \$DERIVED block
+of code.
+\item[\code{codevar}] The content of the R code specified within the \$VARIANCE block 
+in the model file.
+\item[\code{y}] The matrix of structural model predictions.
+\item[\code{xdata}] A vector of times at which the system is being evaluated.
+\item[\code{check}] An indicator whether checks should be performed to validate 
+function inputs
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Return a matrix of numeric values of the same dimension as \code{f}.
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}

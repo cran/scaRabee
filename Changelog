@@ -1,3 +1,34 @@
+2011-03-31 Sebastien Bihorel <sb.pmlab@gmail.com>
+  * scaRabee gets a major overhaul with version 1.1. Changes affect almost every
+  provided functionalities. 
+    * scaRabee now reads (only) datasets specified using NONMEM or S-ADPAT 
+    standards. Dosing and covariates files are no longer required and multiple 
+    functions have been modified accordingly.
+    * scaRabee model is now specified in a single txt file, which uses a 
+    tag-based syntax, very much like the one used in NM-TRAN control streams, 
+    S-ADAPT-TRAN models, or MONOLIX models. Residual variability and secondary
+    parameters are also specified in the same file.
+    * scaRabee now can perform population analysis using the standard two stage 
+    method.
+    * scaRabee now can perform direct grid search.
+  
+  * There is no backward compatibility with versions 1.0.
+  
+  * Almost all existing functions were modified as a result of these changes. 
+  New functions are distributed with version 1.1.
+  
+  * init.report was given a new name initialize.report
+  
+  * Deprecated functions: find.id.R and weigthing.additive
+
+2010/07/30 Sebastien Bihorel <sb.pmlab@gmail.com>
+  * scarabee.analysis: corrected data file reading issues when observations are
+  provided for more than one system states.
+
+  * estimation.plot and simulation.plot: move the par(ask=TRUE) call
+
+  * find.id: modify code to allow user to specify its own 
+  
 2010/05/25 Sebastien Bihorel <sb.pmlab@gmail.com>
 
   * DESCRIPTION: added missing dependencies to deSolve and PBSddesolve packages

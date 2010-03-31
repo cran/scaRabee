@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -21,20 +21,16 @@
 get.layout <- function(nplot=NULL){
 
   if (is.null(nplot))
-    stop('get.layout: nplot is NULL.',
-         call.=FALSE)
+    stop('nplot argument is NULL.')
 
   if (length(nplot)>1)
-    stop('get.layout: nplot is not a scalar.',
-         call.=FALSE)
+    stop('nplot argument is not a scalar.')
          
   if (is.na(nplot))
-    stop('get.layout: nplot is NA.',
-         call.=FALSE)
+    stop('nplot argument is NA.')
 
   if ((nplot-as.integer(nplot))>.Machine$double.eps)
-    stop('get.layout: nplot is not an integer.',
-         call.=FALSE)
+    stop('nplot is not an integer.')
 
   if (nplot==1)
     mylayout <- c(1,1)

@@ -1,4 +1,4 @@
-%Copyright (c) 2009, 2010 Sebastien Bihorel
+%Copyright (c) 2009-2011 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -25,7 +25,8 @@
 \description{
   \code{get.layout} is a utility function called by \code{estimation.plot} and 
   \code{simulation.plot}. It provides a layout for \pkg{lattice} functions based
-  upon a user-defined number of plots per page.
+  upon a user-defined number of plots per page. \code{get.layout} is typically 
+  not called directly by users.
 }
 \usage{
   get.layout(nplot = NULL)

@@ -1,2 +1,0 @@
-'start'
-'Dose ID,Time,Cov(1)'

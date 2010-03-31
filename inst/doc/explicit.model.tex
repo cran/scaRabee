@@ -1,0 +1,61 @@
+\inputencoding{utf8}
+\HeaderA{explicit.model}{Explicit Equations}{explicit.model}
+\keyword{method}{explicit.model}
+%
+\begin{Description}\relax
+\code{explicit.model} is the system evaluation function called when neither
+\$ODE or \$DDE blocks are detected in the model file, indicating that the model
+is defined by explicit equations. \code{explicit.model} is typically not 
+called directly by users.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  explicit.model(parms = NULL,
+                 derparms = NULL,
+                 code = NULL,
+                 bolus = NULL,
+                 infusion = NULL,
+                 xdata = NULL,
+                 covdata = NULL,
+                 issim = 0,
+                 check = FALSE)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{parms}] A vector of primary parameters.
+\item[\code{derparms}] A list of derived parameters, specified in the \$DERIVED block
+of code. (NULL for \code{explicit.model}).
+\item[\code{code}] A list of R code extracted from the model file. Depending on 
+content of the model file, the levels of this list could be: template,
+derived, lags, ode, dde, output, variance, and/or secondary.
+\item[\code{bolus}] A data.frame providing the instantaneous inputs  entering the 
+system of delay differential equations for the treatment and individual 
+being evaluated.
+\item[\code{infusion}] A data.frame providing the zero-order inputs entering the 
+system of delay differential equations for the treatment and individual 
+being evaluated.
+\item[\code{xdata}] A vector of times at which the system is being evaluated.
+\item[\code{covdata}] A data.frame of covariate data for the treatment and individual 
+being evaluated.
+\item[\code{issim}] An indicator for simulation or estimation runs.
+\item[\code{check}] An indicator whether checks should be performed to validate 
+function inputs.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+\code{explicit.model} evaluates the model for each treatment of each 
+individual contained in the dataset, based upon the code specified in the 
+\$OUTPUT block in the model file.
+\end{Details}
+%
+\begin{Value}
+Returns a matrix of system predictions.
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}

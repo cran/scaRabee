@@ -1,0 +1,69 @@
+\inputencoding{utf8}
+\HeaderA{scarabee.read.parms}{Read scaRabee Parameter File}{scarabee.read.parms}
+\keyword{method}{scarabee.read.parms}
+%
+\begin{Description}\relax
+\code{scarabee.read.parms} is a secondary function called at each 
+\pkg{scaRabee} run. It reads and checks the information contained in the 
+specified parameter file.\code{scarabee.read.parms} is typically not called
+directly by users.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  scarabee.read.parms(files = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{files}] A list of input used for the analysis. The following elements are
+expected and none of them could be null: \begin{description}
+
+\item[data] A .csv file located in the working directory, which contains
+the dosing information, the observations of the dependent variable(s)
+to be modeled, and possibly covariate information. The expected format 
+of this file is described in details in \code{vignette('scaRabee',
+        package='scaRabee')}.
+\item[param] A .csv file located in the working directory, which contains
+the initial guess(es) for the model parameter(s) to be optimized or used
+for model simulation. The expected format of this file is described in
+details in \code{vignette('scaRabee',package='scaRabee')}.
+\item[model] A text file located in the working directory, which defines 
+the model. Models specified with explicit, ordinary or delay 
+differential equations are expected to respect a certain syntax and 
+organization detailed in \code{vignette('scaRabee',package='scaRabee')}.
+\item[iter] A .csv file reporting the values of the objective function
+and estimates of model parameters at each iteration.  (Not used for 
+simulation runs).
+\item[report] A text file reporting for each individual in the dataset the
+final parameter estimates for structural model parameters, residual 
+variability and secondary parameters as well as the related statistics 
+(coefficients of variation, confidence intervals, covariance and 
+correlation matrix). (Not used for simulation runs).
+\item[pred] A .csv file reporting the predictions and calculated residuals
+for each individual in the dataset. (Not used for simulation runs).
+\item[est] A .csv file reporting the final parameter estimates for each
+individual in the dataset. (Not used for simulation runs).
+\item[sim] A .csv file reporting the simulated model predictions for each 
+individual in the dataset. (Not used for estimation runs).
+
+\end{description}
+
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+If the content of the parameter file is valid, \code{scarabee.read.parms}
+returns a data.frame with the same content. The names of the data.frame 
+columns are: names, type, value, isfix, lb, and ub.
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{scarabee.analysis}{scarabee.analysis}}
+\end{SeeAlso}

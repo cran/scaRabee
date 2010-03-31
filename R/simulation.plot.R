@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -18,84 +18,101 @@
 #    along with scaRabee.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-simulation.plot <- function(problem=NULL,Fsim=Fsim,files=files){
-
-  # Get the number of different dose levels and states
-  doselevel <- problem$data$ids[,1]
-  ndose <- length(doselevel)
-  nstate <- length(unique(Fsim$output))
-
-  # Order Fsim output
-  Fsim$output <- factor(Fsim$output,levels=unique(Fsim$output)) 
-
+simulation.plot <- function(problem=NULL,simdf=NULL,files=NULL){
+  
+  # Get the number of different trts
+  trts <- unique(simdf$TRT)
+  
   # Create storage list for plots
   plotlist <- list()
+  newplot <- 1
   
   # Plotting loop
-  for (i in 1:ndose){
+  for (i in 1:length(trts)) {
+    itrt <- trts[i]
     if (i<10){
-      figName <- sprintf('0%d.sim.Dose.%d.pdf',i,i)
+      figName <- sprintf('0%d.sim.Dose.%s.pdf',i,itrt)
     } else {
-      figName <- sprintf('%d.sim.Dose.%d.pdf',i,i)
+      figName <- sprintf('%d.sim.Dose.%s.pdf',i,itrt)
     }
-
+    
+    # Extract data from itrt level
+    tmpdf <- simdf[which(simdf$TRT==itrt),]
+    tmpdf$DVID <- factor(tmpdf$DVID,levels=unique(tmpdf$DVID))
+    
+    # Get the number of ids and cmts in tmpdf
+    ids <- unique(tmpdf$ID)
+    cmts <- unique(tmpdf$DVID)
+    
     # Open device
-    if (nstate==1){
+    if (length(cmts)==1){
       pdf(file=figName,
-          paper="letter")
+          width=6.5,
+          height=6.5)
     } else {
       pdf(file=figName,
-          width=8.5,
-          height=11)
+          width=6.5,
+          height=9)
     }
-
-    # Extracts data from dose level
-    tmp <- Fsim[Fsim$doseID==i,]
-
-    # Create plots
-    simplot <- xyplot(value~time|output,
-                      data=tmp,
-                      group=tmp$type,
-                      as.table=TRUE,
-                      panel = function(x,y,subscripts,...){
-                        panel.xyplot(x,y,...,
-                                     type=c('p','l'),
-                                     pch=c(3,NULL),
-                                     col=c(1,4),
-                                     distribute.type=TRUE,
-                                     subscripts=subscripts)
-                      },
-
-                      scales=list(x=list(relation='free'),
-                                  y=list(relation='free')),
-                      strip=strip.custom(var.name='Output',
-                                         style=1,
-                                         bg=0,
-                                         sep=' ',
-                                         strip.name=c(TRUE,TRUE)),
-                      xlab='Time',
-                      ylab='Observations / Predictions',
-                      main=sprintf('Dose level %d',doselevel[i]),
-                      layout=get.layout(nstate))
+    
+    trellis.par.set(superpose.symbol=list(col=c("blue","black"),
+                                          pch=c(1,3)),
+                    superpose.line=list(col=c("blue","black")))
+    
+    for (iid in ids){
+      # Extract data from iid level
+      iddf <- tmpdf[which(tmpdf$ID==iid),]
+      
+      if (problem$method=='subject'){
+        ititle <- paste('Subject', iid, '- Treatment', i)
+      } else {
+        ititle <- paste('Population - Treatment', i)
+      }
+      
+      # Create plots
+      simplot <- xyplot(SIM+OBS~TIME|DVID,
+                        data=iddf,
+                        as.table=TRUE,
+                        distribute.type=TRUE,
+                        type=c('l','p'),
+                        scales=list(x=list(relation='free'),
+                                    y=list(relation='free')),
+                        strip=strip.custom(var.name='Output',
+                                           style=1,
+                                           bg=0,
+                                           sep=' ',
+                                           strip.name=c(TRUE,TRUE)),
+                        xlab='Time',
+                        ylab='Observations / Predictions',
+                        main=ititle,
+                        layout=get.layout(length(cmts)))
 
     print(simplot)
-
+    plotlist[[newplot]] <- simplot
+    newplot <- newplot + 1
+    }
     dev.off()
-
-    plotlist[[i]] <- simplot
   }
-
+  
   # Display plots in iteractive mode
   if (interactive()){
+    dev.new()
+    trellis.par.set(superpose.symbol=list(col=c("blue","black"),
+                                          pch=c(1,3)),
+                    superpose.line=list(col=c("blue","black")))
+    print(plotlist[[1]])
     par(ask=TRUE)
-      for (i in 1:length(ndose)){
+    
+    if (length(plotlist)>=2){
+      for (i in 2:length(plotlist)){
         print(plotlist[[i]])
       }
+    }
     par(ask=FALSE)
   }
   
   # Print a message to screen
   cat(sprintf('\n%s%s\n%s\n','Diagnostic figures have been created and saved in the ',
               'working directory.','You may open and edit them at your convenience.'))
-
+  
 }

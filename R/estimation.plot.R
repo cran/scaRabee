@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,196 +19,181 @@
 #
 
 estimation.plot <- function(problem=NULL,Fit=NULL,files=NULL){
-
-# Sets some default variable value
+  
+# Set some default variable value
   nestparam <- length(Fit$estimations)
   
-# Plots ... vs iterations
+# Create ... vs iteration plots
 
-  # Determines the most esthetical arrangement of plots based on nestparam
+  # Determine the most esthetical arrangement of plots based on nestparam
   tmplayout <- get.layout(nplot=nestparam + 1)
   
-  # imports and reshape data to be plotted
+  # Import and reshape data to be plotted
   data <- read.table(file=files$iter,
                      header=TRUE,
                      as.is=TRUE,
                      sep=',',
                      check.names=FALSE)
   est.names <- problem$init$names[which(problem$init$isfix==0)]
-  data <- reshape(data[,c('Objective function',est.names)],
+  data <- reshape(data[,c('Objective function',est.names,'ID')],
                   idvar='iteration',
                   times=c('Objective function',est.names),
                   timevar='variable',
                   varying=list(c('Objective function',est.names)),
                   direction='long')
   data$variable <- factor(data$variable,levels=unique(data$variable))
-  data$iteration <- data$iteration-1
-  names(data)[2] <- 'value'
-
-  # Create storage list for plots
-  plotlist <- list()
+  firstiterations <- data$iteration[match(unique(data$ID),data$ID)]
+  for (id in unique(data$ID)){
+    data$iteration[which(data$ID==id)] <- data$iteration[which(data$ID==id)] -
+                                          firstiterations[id]
+  }
+  names(data)[3] <- 'value'
   
   # Objective function and parameters vs iteration plot
   pdf(file='01.Iterations.pdf',
-      width=8.5,
-      height=11)
+      width=6.5,
+      height=9)
 
-  #trellis.par.set()
-  myplot <- xyplot(value~iteration|variable,
-                   data=data,
-                   as.table=TRUE,
-                   type='l',
-                   col=4,
-                   scales=list(x=list(relation='free'),
-                               y=list(relation='free')),
-                   strip=strip.custom(style=1,bg=0),
-                   xlab='Iteration',
-                   ylab='Value / Estimate',
-                   main='Gradient monitoring',
-                   layout=tmplayout)
-   print(myplot)
-   
-   dev.off()
-
-   plotlist[[1]] <- list(myplot)
-
-# Plot diagnostic plots
-  # imports data to be plotted
+  for (i in unique(data$ID)) {
+    if (problem$method=='subject'){
+      ititle <- paste('Subject', i)
+    } else {
+      ititle <- 'Population'
+    }
+    
+    itplot <- xyplot(value~iteration|variable,
+                     data=data,
+                     subset=which(data$ID==i),
+                     as.table=TRUE,
+                     type='l',
+                     col=4,
+                     scales=list(x=list(relation='free'),
+                                 y=list(relation='free')),
+                     strip=strip.custom(style=1,bg=0),
+                     xlab='Iteration',
+                     ylab='Value / Estimate',
+                     main=paste('Gradient monitoring - ',ititle,sep=''),
+                     layout=tmplayout)
+    print(itplot)
+  }
+  dev.off()
+  
+# Create diagnostic plots
+  
+  # Import data to be plotted
   data <- read.table(file=files$pred,
                      header=TRUE,
                      as.is=TRUE,
                      sep=',',
                      check.names=FALSE)
-
-  names(data)[length(names(data))] <- 'WRES'
-
-  # Find pred/residuals dose level indices
-  resids <- find.id(data[,1])
   
-  # Creates one sets of plot for each dose level
-  doselevel <- problem$data$ids[,1] 
-
-  for (i in 1:length(doselevel)){
-    # Create placeholders in plotlist
-    plotlist[[i+1]] <- list(NA,NA,NA,NA,NA)
+  # Creates prediction plots
+  pdf(file='02.Predictions.pdf',
+      width=6.5,
+      height=9)
     
-    # Creates subset of pred/residuals datasets
-    subdata <- data[which(data[,1]==i),]
-    subdata$Output <- factor(subdata$Output,levels=unique(subdata$Output))
-    
-    outputs   <- unique(subdata$Output)
-    noutput   <- length(outputs)
-    tmplayout <- get.layout(nplot=noutput)
-
-    # Model predictions vs independent variable
-    if (i<10){
-      figName <- sprintf('0%d.Dose.0%d.predictions.pdf',i,i)
-    } else {
-      figName <- sprintf('%d.Dose.%d.predictions.pdf',i,i)
-    }
-    
-    pdf(file=figName,
-        width=8.5,
-        height=11)
-        
-    myplot <- xyplot(Observation+Prediction~Time|Output,
-                      data=subdata,
-                      as.table=TRUE,
-                      type=c('p','l'),
-                      pch=c(3,NULL),
-                      col=c(1,4),
-                      distribute.type=TRUE,
-                      scales=list(x=list(relation='free'),
-                                  y=list(relation='free')),
-                      strip=strip.custom(var.name='Output',
-                                         style=1,
-                                         bg=0,
-                                         sep=' ',
-                                         strip.name=c(TRUE,TRUE)),
-                      xlab='Time',
-                      ylab='Observations / Predictions',
-                      main=sprintf('Dose level %d',doselevel[i]),
-                      layout=tmplayout)
-    print(myplot)
-
-    dev.off()
-
-    plotlist[[i+1]][[1]] <- myplot
-    
-    #Model residuals
-    if (i<10){
-      figName <- sprintf('0%d.Dose.0%d.residuals.pdf',i,i)
-    } else {
-      figName <- sprintf('%d.Dose.%d.residuals.pdf',i,i)
-    }
-    
-    pdf(file=figName,
-        paper='letter')
-
-    for (j in 1:noutput){
-      rplot1 <- xyplot(Prediction~Observation,
-                       data=subdata,
-                       panel=function(x,y,...){
-                         panel.xyplot(x,y,type='p',pch=3,col=4)
-                         panel.abline(c(0,1),type='l',col=2)
-                       },
-                       strip=NULL,
-                       xlab=sprintf('Observations - Output %d',outputs[j]),
-                       ylab=sprintf('Predictions - Output %d',outputs[j]))
-      rplot2 <- xyplot(WRES~Time,
-                       data=subdata,
-                       panel=function(x,y,...){
-                         panel.xyplot(x,y,type='p',pch=3,col=4)
-                         panel.abline(c(0,0),type='l',col=2)
-                       },
-                       strip=NULL,
-                       xlab=sprintf('Time - Output %d',outputs[j]),
-                       ylab=sprintf('Weighted residuals - Output %d',outputs[j]))
-      rplot3 <- xyplot(WRES~Observation,
-                       data=subdata,
-                       panel=function(x,y,...){
-                         panel.xyplot(x,y,type='p',pch=3,col=4)
-                         panel.abline(c(0,0),type='l',col=2)
-                       },
-                       strip=NULL,
-                       xlab=sprintf('Observations - Output %d',outputs[j]),
-                       ylab=sprintf('Weighted residuals - Output %d',outputs[j]))
-      rplot4 <- xyplot(WRES~Prediction,
-                       data=subdata,
-                       panel=function(x,y,...){
-                         panel.xyplot(x,y,type='p',pch=3,col=4)
-                         panel.abline(c(0,0),type='l',col=2)
-                       },
-                       strip=NULL,
-                       xlab=sprintf('Predictions - Output %d',outputs[j]),
-                       ylab=sprintf('Weighted residuals - Output %d',outputs[j]))
-      print(rplot1,split=c(1,1,2,2),more=TRUE)
-      print(rplot2,split=c(1,2,2,2),more=TRUE)
-      print(rplot3,split=c(2,1,2,2),more=TRUE)
-      print(rplot4,split=c(2,2,2,2),more=FALSE)
-
-      plotlist[[i+1]][[2]] <- rplot1
-      plotlist[[i+1]][[3]] <- rplot2
-      plotlist[[i+1]][[4]] <- rplot3
-      plotlist[[i+1]][[5]] <- rplot4
-    }
-
-    dev.off()
-    
-  }
-
-  # Display plots in iteractive mode
-  if (interactive()){
-    par(ask=TRUE)
-      print(plotlist[[1]][[1]])
-      for (i in (1:length(doselevel))+1){
-        for (j in 1:5){
-          print(plotlist[[i]][[j]])
-        }
+  for (iid in unique(data$ID)){
+    subdata <- data[which(data$ID==iid),]
+    for (itrt in unique(subdata$TRT)){
+      if (problem$method=='subject'){
+        ititle <- paste('Subject', iid, '- Treatment', itrt)
+      } else {
+        ititle <- paste('Population - Treatment', itrt)
       }
-    par(ask=FALSE)
+      trtdata <- subdata[which(subdata$TRT==itrt),]
+      trtdata$DVID <- factor(trtdata$DVID,levels=unique(trtdata$DVID))
+      noutput   <- nlevels(trtdata$DVID)
+      tmplayout <- get.layout(nplot=noutput)
+      
+      myplot <- xyplot(DV+IPRED~TIME|DVID,
+                       data=trtdata,
+                       as.table=TRUE,
+                       type=c('p','l'),
+                       pch=c(3,NULL),
+                       col=c(1,4),
+                       distribute.type=TRUE,
+                       scales=list(x=list(relation='free'),
+                                   y=list(relation='free')),
+                       strip=strip.custom(var.name='Output',
+                                          style=1,
+                                          bg=0,
+                                          sep=' ',
+                                          strip.name=c(TRUE,TRUE)),
+                       xlab='Time',
+                       ylab='Observations / Predictions',
+                       main=ititle,
+                       layout=tmplayout)
+      print(myplot)
+    }
   }
+  
+  dev.off()
+  
+  # Creates residuals plots
+  pdf(file='03.Residuals.pdf',
+      width=6.5,
+      height=9)
 
+  for (iid in unique(data$ID)){
+    subdata <- data[which(data$ID==iid),]
+    for (itrt in unique(subdata$TRT)){
+      trtdata <- subdata[which(subdata$TRT==itrt),]
+      for (icmt in unique(trtdata$DVID)){
+        if (problem$method=='subject'){
+          ititle <- paste('Subject', iid, '- Treatment', itrt, '- Output', icmt)
+        } else {
+          ititle <- paste('Population - Treatment', itrt, '- Output', icmt)
+        }
+        cmtdata <- trtdata[which(trtdata$DVID==icmt),]
+        rplot1 <- xyplot(IPRED~DV,
+                         data=cmtdata,
+                         panel=function(x,y,...){
+                           panel.xyplot(x,y,type='p',pch=3,col=4)
+                           panel.abline(c(0,1),type='l',col=2)
+                         },
+                         strip=NULL,
+                         xlab='Observations',
+                         ylab='Predictions')
+        rplot2 <- xyplot(WRES~TIME,
+                         data=cmtdata,
+                         panel=function(x,y,...){
+                           panel.xyplot(x,y,type='p',pch=3,col=4)
+                           panel.abline(c(0,0),type='l',col=2)
+                         },
+                         strip=NULL,
+                         xlab='Time',
+                         ylab='Weighted residuals')
+        rplot3 <- xyplot(WRES~DV,
+                         data=cmtdata,
+                         panel=function(x,y,...){
+                           panel.xyplot(x,y,type='p',pch=3,col=4)
+                           panel.abline(c(0,0),type='l',col=2)
+                         },
+                         strip=NULL,
+                         xlab='Observations',
+                         ylab='Weighted residuals')
+        rplot4 <- xyplot(WRES~IPRED,
+                         data=cmtdata,
+                         panel=function(x,y,...){
+                           panel.xyplot(x,y,type='p',pch=3,col=4)
+                           panel.abline(c(0,0),type='l',col=2)
+                         },
+                         strip=NULL,
+                         xlab='Predictions',
+                         ylab='Weighted residuals')
+      
+      print(rplot1,position=c(0,0.1,0.5,0.5),more=TRUE)
+      grid.text(label=ititle,
+                x=0.5,y=0.95,just='center',gp=gpar(cex=1.5))
+      print(rplot2,position=c(0.5,0.1,1,0.5),more=TRUE)
+      print(rplot3,position=c(0,0.5,0.5,0.9),more=TRUE)
+      print(rplot4,position=c(0.5,0.5,1,0.9),more=FALSE)
+      
+      }
+    }
+  }
+  dev.off()
+  
   # Print a message to screen
   cat(sprintf('\n%s%s\n%s\n','Diagnostic figures have been created and saved in: ',
               getwd(),'You may open and edit them at your convenience.'))

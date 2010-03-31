@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -18,30 +18,17 @@
 #    along with scaRabee.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-scarabee.clean <- function(files=NULL,analysis=NULL){
-
+scarabee.clean <- function(files=NULL, analysis=NULL){
+  
   options(warn=-1)
   if (file.exists(files$data)) file.remove(files$data)
   if (file.exists(files$param)) file.remove(files$param)
-  if (file.exists(files$dose)) file.remove(files$dose)
-  if (file.exists(files$cov)) file.remove(files$cov)
-
-  file <- paste('model.definition/',files$model,'.R',sep='')
-  if (file.exists(file)) file.remove(file)
-
-  file <- paste('model.definition/',files$var,'.R',sep='')
-  if (file.exists(file)) file.remove(file)
-
-  file <- paste('model.definition/',files$sec,'.R',sep='')
-  if (file.exists(file)) file.remove(file)
-
-  if (file.exists('model.definition')) file.remove('model.definition')
-
+  
   file <- paste(analysis,'.R',sep='')
   if (file.exists(file)) file.remove(file) 
-
+  
   options(warn=0)
-
+  
   setwd('../')
   
 }

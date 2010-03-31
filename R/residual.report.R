@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -22,8 +22,7 @@ residual.report <- function(problem=NULL,Fit=NULL,files=NULL){
   
   # Definition of some local variables by transfer from Fit and states variables
     # Optimized model and variance parameters
-  x      <- Fit$estimations
-  nstate <- length(problem$states)
+  x <- Fit$estimations
   
   # Copies param in newparam and replaces the new estimates in newparam
   newparam <- problem$init
@@ -35,71 +34,52 @@ residual.report <- function(problem=NULL,Fit=NULL,files=NULL){
       estindex <- estindex + 1
     }
   }
-
-  write(paste('Dose ID,Obs No,Output,Time,Observation,Prediction,Residual,',
-              'Variance,Weighted residual',sep=''),
-        file=files$pred,append=FALSE,sep='\n')
   
   # Consider each dose level
-  for (i in 1:length(problem$data$ids[,1])){
-    # Creates subproblem
-    subproblem             <- problem
-    subproblem$data$xdata  <- problem$data$xdata[problem$data$ids[i,2]:
-                                                 problem$data$ids[i,3]]
-    subproblem$data$ydata  <- problem$data$ydata[problem$data$ids[i,2]:
-                                                 problem$data$ids[i,3],]
-    subproblem$dosing$history <- problem$dosing$history[problem$dosing$ids[i,2]:
-                                                        problem$dosing$ids[i,3],]
-    if (size(problem$cov$data,1)!=0){
-      subproblem$cov$data <- problem$cov$data[problem$cov$ids[i,2]:
-                                              problem$cov$ids[i,3],]
-    } else {
-      subproblem$cov$data <- list(NULL)
-    }
+  trts <- problem$data$trts
   
-    # Gets the model predictions
-    pred <- do.call(eval(parse(text=subproblem$modfun)),
-                    list(x=newparam,
-                         dosing=subproblem$dosing$history,
-                         xdata=subproblem$data$xdata,
-                         covdata=subproblem$cov$data))
-    # Convert pred to matrix if is a vector
-    if (size(pred,1)==1)
-      pred <- matrix(pred,nrow=1)
+  for (i in trts){
+    # Creates subproblem
+    subproblem <- problem[c('code','method','init','debugmode','modfun','ddedt',
+                            'hbsize')]
+    subproblem$data$xdata <- sort(unique(problem$data[[i]]$ana$TIME))
+    ana.data <- problem$data[[i]]$ana
+    subproblem$bolus <- problem$data[[i]]$bolus
+    subproblem$infusion <- problem$data[[i]]$infusion
     
-    # Gets the weights and weighted residuals
-    varpar <- newparam[which(newparam$type=='V'),]
-
-    if (is.null(varpar)){
-      weight <- do.call(eval(parse(text=subproblem$varfun)),
-                        list(x=NULL,f=pred,xdata=subproblem$data$xdata))
+    if (size(problem$data[[i]]$cov,1)!=0){
+      subproblem$cov <- problem$data[[i]]$cov
     } else {
-      weight <- do.call(eval(parse(text=subproblem$varfun)),
-                        list(x=varpar,f=pred,xdata=subproblem$data$xdata))
+      subproblem$cov <- list(NULL)
     }
-
-    # Convert weight to matrix if is a vector
-    if (size(weight,1)==1)
-      weight <- matrix(weight,nrow=1)
-      
-    # Convert ydata to matrix if is a vector
-    ydata <- subproblem$data$ydata
-    if (size(ydata,1)==1)
-      ydata <- matrix(ydata,nrow=1)
-
+    
+    # Get the model predictions and corresponding weights
+    pred <- problem.eval(subproblem,x)
+    ana.data$IPRED <- apply(ana.data,1,
+                            function(x,...) {
+                              pred$f[x[2]+1,which(pred$f[1,]==x[1])]},
+                            pred)
+    ana.data$W <- apply(ana.data,1,
+                        function(x,...) {
+                          pred$weight[x[2]+1,which(pred$weight[1,]==x[1])]},
+                        pred)
+    
     # Calculates the residuals
-    res   <- ydata - pred
-    wres  <- res/weight
-
+    ana.data$IRES <- ana.data$DV - ana.data$IPRED
+    ana.data$WRES <- ana.data$IRES/ana.data$W
+    
+    # Add variables to ana.data
+    ana.data$ID <- problem$data$id
+    ana.data$TRT <- i
+    
     # Print the residuals to file
-    tmpform <- paste(c(rep('%d,',3),rep('%0.5g,',5),'%0.5g'),collapse='')
-    for (j in 1:nstate){
-      for (k in 1:length(subproblem$data$xdata)){
-        tmp <- c(i,k,j,subproblem$data$xdata[k],ydata[j,k],
-                 pred[j,k],res[j,k],weight[j,k],wres[j,k])
-        write(do.call(sprintf,c(list(tmpform),as.list(tmp))),
-              file=files$pred,append=TRUE,sep='\n')
-      }
+    tmpform <- paste(c('%d,%s,%d,%d,',rep('%0.5g,',5),'%0.5g'),collapse='')
+    for (row in 1:size(ana.data,1)){
+      tmp <- c(ana.data$ID[row],ana.data$TRT[row],row,ana.data$DVID[row],
+               ana.data$TIME[row],ana.data$DV[row],ana.data$IPRED[row],
+               ana.data$IRES[row],ana.data$W[row],ana.data$WRES[row])
+      write(do.call(sprintf,c(list(tmpform),as.list(tmp))),
+            file=files$pred,append=TRUE,sep='\n')
     }
   }
 }

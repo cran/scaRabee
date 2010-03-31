@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,118 +19,129 @@
 #
 
 get.cov.matrix <- function(problem=NULL,Fit=NULL){
-
+  
   # Initialization of the matrix
   M <- matrix(0,nrow=length(Fit$estimations),ncol=length(Fit$estimations))
-
+  
   # Reorder param list
-  ordered <- order.param.list(x=problem$init)
-
+  ordered <- order.parms.list(x=problem$init)
+  
   # Filter the param and ordered data structures to get only the estimated
   # parameters
   estparam <- problem$init[which(problem$init$isfix==0),]
   fixparam <- problem$init[which(problem$init$isfix==1),]
   estorder <- ordered[which(ordered$isfix==0),]
   fixorder <- ordered[which(ordered$isfix==1),]
-
+  
   # Calculates the number of estimated model and variance parameters
     # p = nb of model parametres
-  p <- length(get.param.data(x=estparam,which='type',type='P')) +
-       length(get.param.data(x=estparam,which='type',type='L')) +
-       length(get.param.data(x=estparam,which='type',type='IC'))
+  p <- length(get.parms.data(x=estparam,which='type',type='P')) +
+       length(get.parms.data(x=estparam,which='type',type='L')) +
+       length(get.parms.data(x=estparam,which='type',type='IC'))
     # q = nb of variance parametres
-  q <- length(get.param.data(x=estparam,which='type',type='V')) 
-
+  q <- length(get.parms.data(x=estparam,which='type',type='V')) 
+  
   # Determines in estparam the corresponding parameter indices from estorder
   indices <- match(estorder$names,estparam$names)
-
+  
   # Computes model predictions and partial derivatives using original
   # parameter order (x and param)
   w <- c() ; mpder <- c() ; wpder <- c()
-
-  for (i in 1:length(problem$data$ids[,1])){
+  
+  trts <- problem$data$trts
+  
+  for (i in trts){
     # Creates subproblem
-    subproblem            <- problem
-    subproblem$data$xdata <- problem$data$xdata[problem$data$ids[i,2]:
-                                                problem$data$ids[i,3]]
-    subproblem$data$ydata <- problem$data$ydata[problem$data$ids[i,2]:
-                                                problem$data$ids[i,3],]
-    subproblem$dosing$history <- problem$dosing$history[problem$dosing$ids[i,2]:
-                                                        problem$dosing$ids[i,3],]
-    if (size(problem$cov$data,1)!=0){
-      subproblem$cov$data <- problem$cov$data[problem$cov$ids[i,2]:
-                                              problem$cov$ids[i,3],]
+    subproblem             <- problem[c('code','method','init','debugmode',
+                                        'modfun','ddedt','hbsize')]
+    subproblem$data$xdata  <- sort(unique(problem$data[[i]]$ana$TIME))
+    subproblem$data$data  <- problem$data[[i]]$ana
+    subproblem$bolus <- problem$data[[i]]$bolus
+    subproblem$infusion <- problem$data[[i]]$infusion
+    
+    if (size(problem$data[[i]]$cov,1)!=0){
+      subproblem$cov <- problem$data[[i]]$cov
     } else {
-      subproblem$cov$data <- list(NULL)
+      subproblem$cov <- list(NULL)
     }
-
+    
     # Obtains the model prediction and weighting based on final estimates
     tmp <- problem.eval(subproblem=subproblem,x=Fit$estimations)
-      subf <- as.vector(tmp$f)
-      subw <- as.vector(tmp$weight)
+      subf <- apply(subproblem$data$data,1,
+                    function(x,...) {
+                      tmp$f[x[2]+1,which(tmp$f[1,]==x[1])]},
+                    tmp)
+      subw <- apply(subproblem$data$data,1,
+                    function(x,...) {
+                      tmp$weight[x[2]+1,which(tmp$weight[1,]==x[1])]},
+                    tmp)
     rm(tmp)
-
-    ydata <- as.vector(subproblem$data$ydata)
-
-    # Remove instances of Weight corresponding to NaN values in ydata
-    subw <- subw[which(!is.na(ydata))]
-
+    
     # Obtains the matrix or partial derivatives with respect to final estimates
     tmp <- pder(subproblem=subproblem,x=Fit$estimations)
       submpder <- tmp$mpder
       subwpder <- tmp$wpder
     rm(tmp)
-
+    
     # Reorders submpder and subwpder to compute and output the matrix properly (P,L,IC,V)
     submpder <- submpder[indices,]
     subwpder <- subwpder[indices,]
-
+    
     # Appends w, submpder, subwpder
     w <- c(w,subw)
     mpder <- cbind(mpder,submpder)
     wpder <- cbind(wpder,subwpder)
   }
-
-  # Computes the matrix to be inversed to get the covariance matrix
-    # covariance of the model parameters
   
+  # Computes the matrix to be inversed to get the covariance matrix
   M <- matrix(NA,nrow=p+q,ncol=p+q)
-  for (j in 1:p){
-    for (k in 1:p){
-      M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])+sum((1/w)*mpder[j,]*mpder[k,])
+  
+  if (p>0){
+    for (j in 1:p){
+      # covariance of the model parameters
+      for (k in 1:p){
+        M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])+sum((1/w)*mpder[j,]*mpder[k,])
+      }
+      if (q>0){
+        # covariance of the model parameters with the variance parameters
+        for (k in (p+1):(p+q)){
+          M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])
+        }
+      }
     }
   }
-    # covariance of variance parameters
-  for (j in (p+1):(p+q)){
-    for (k in (p+1):(p+q)){
-      M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])
+  
+  if (q>0){
+    for (j in (p+1):(p+q)){
+      # covariance of variance parameters
+      for (k in (p+1):(p+q)){
+        M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])
+      }
+      if (p>0){
+        # covariance of the variance parameters with the model parameters
+        for (k in 1:p){
+          M[j,k] <- M[k,j]
+        }
+      }
     }
   }
-    # covariance of the model parameters with the variance parameters
-  for (j in 1:p){
-    for (k in (p+1):(p+q)){
-      M[j,k] <- 0.5*sum((1/w^2)*wpder[j,]*wpder[k,])
-    }
-  }
-    # covariance of the variance parameters with the model parameters
-  for (j in (p+1):(p+q)){
-    for (k in 1:p){
-      M[j,k] <- M[k,j]
-    }
-  }
-
+  
   # Computes the covariance matrix
-  covmatrix <- solve(qr(M,LAPACK=TRUE))
-
+  if (det(M)==0){
+    covmatrix <- 'singular'
+  } else {
+    covmatrix <- solve(qr(M,LAPACK=TRUE))
+  }
+  
   # Gets estimated parameter reordered values, names, type
   estimordered <- data.frame(names=estparam$names[indices],
                              value=Fit$estimations[indices,1],
                              type =estparam$type[indices],
                              stringsAsFactors=FALSE)
-
+  
   varargout <- list(covmatrix=covmatrix,estimordered=estimordered)
-
+  
   return(varargout)
-
+  
 }
 

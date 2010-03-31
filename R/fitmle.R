@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -21,17 +21,18 @@
 fitmle <- function(problem=NULL,
                    estim.options=NULL,
                    files=NULL){
-
-# Check inputs
+  
+  # Check inputs
   if (is.null(problem) | is.null(estim.options) | is.null(files)){
-    stop('One or more input argument of fitmle is null. Please, check your code.')
+    stop(paste('one or more input argument of fitmle is null. Please, ',
+               'check your code.',sep=''))
   }
-
-# Create output function
-  myOutputFcn <- function(x=NULL,
-                          optimValues=NULL,
-                          state=NULL,
-                          ...){
+  
+  # Create output function
+  output.fun <- function(x=NULL,
+                         optimValues=NULL,
+                         state=NULL,
+                         ...){
     #
     # AIM: save on a log file the results of each iteration
     #
@@ -44,7 +45,7 @@ fitmle <- function(problem=NULL,
     estparam <- problem$init[which(problem$init$isfix==0),]
     fixparam <- problem$init[which(problem$init$isfix==1),]
     x <- bound.parameters(x=x,lb=estparam$lb,ub=estparam$ub)
-
+    
     # Build the output string
     # - get the current parameter values
     for (i in 1:length(x)){
@@ -54,67 +55,69 @@ fitmle <- function(problem=NULL,
         mystr <- paste(mystr,sprintf('%0.6g',x[i]),sep=',')
       }
     }
-
+    
     # - build a time stamp
     timestamp <- Sys.time()
-
+    
     # - build the final string for output
-    mystr <- paste(sprintf('%d,%0.6g,%d',optimValues$iteration,
-                           optimValues$fval,optimValues$funccount),
+    mystr <- paste(sprintf('%d,%d,%0.6g,%d',problem$data$id,
+                           optimValues$iteration,optimValues$fval,
+                           optimValues$funccount),
                    optimValues$procedure,mystr,timestamp,sep=',')
-
+    
     # Output only the iterations (not at initialization and completion)
     #if (!any(state==c('init','done'))){
     if (state!='done'){
       write(mystr,file=files$iter,sep='\n',append=TRUE)
     }
-
+  
   }
-
-# Create objection function minimization routine
+  
+  # Create objection function minimization routine
   obj.fun <- function(x=NULL,...){
     # Constrain all estimates to the defined intervals
     estparam <- problem$init[which(problem$init$isfix==0),]
     x <- bound.parameters(x=x,lb=estparam$lb,ub=estparam$ub)
-
-    # Get model predictions and calculates objective function (ML)
-    ML=0
     
-    for (i in 1:length(problem$data$ids[,1])){
+    # Get model predictions and calculates objective function (ML)
+    ML <- 0
+    trts <- problem$data$trts
+    
+    for (i in trts){
       # Create subproblem
-      subproblem             <- problem
-      subproblem$data$xdata  <- problem$data$xdata[problem$data$ids[i,2]:
-                                                   problem$data$ids[i,3]]
-      subproblem$data$ydata  <- problem$data$ydata[problem$data$ids[i,2]:
-                                                   problem$data$ids[i,3],]
-      subproblem$dosing$history <- problem$dosing$history[problem$dosing$ids[i,2]:
-                                                          problem$dosing$ids[i,3],]
-      if (size(problem$cov$data,1)!=0){
-        subproblem$cov$data <- problem$cov$data[problem$cov$ids[i,2]:
-                                                problem$cov$ids[i,3],]
+      subproblem <- problem[c('code','method','init','debugmode','modfun',
+                              'ddedt','hbsize')]
+      subproblem$data$xdata <- sort(unique(problem$data[[i]]$ana$TIME))
+      subproblem$data$data <- problem$data[[i]]$ana
+      subproblem$bolus <- problem$data[[i]]$bolus
+      subproblem$infusion <- problem$data[[i]]$infusion
+      
+      if (size(problem$data[[i]]$cov,1)!=0){
+        subproblem$cov <- problem$data[[i]]$cov
       } else {
-        subproblem$cov$data <- list(NULL)
+        subproblem$cov <- list(NULL)
       }
-
+      
       # Calculate ML
       if (!problem$debugmode){
-
         tmp <- try(
           {
           # Get the model predictions and corresponding weights
-          pred <- problem.eval(subproblem=subproblem,x=x)
-          ydata <- as.vector(subproblem$data$ydata)
-          fpred <- as.vector(pred$f)
-          weight <- as.vector(pred$weight)
-          # Remove instances of fpred, weight, ydata corresponding to NA values in ydata
-          fpred <- fpred[which(!is.na(ydata))]
-          weight <- weight[which(!is.na(ydata))]
-          ydata <- ydata[which(!is.na(ydata))]
+          pred <- problem.eval(subproblem,x)
+          ydata <- subproblem$data$data$DV
+          fpred <- apply(subproblem$data$data,1,
+                         function(x,...) {
+                           pred$f[x[2]+1,which(pred$f[1,]==x[1])]},
+                         pred)
+          weight <- apply(subproblem$data$data,1,
+                          function(x,...) {
+                            pred$weight[x[2]+1,which(pred$weight[1,]==x[1])]},
+                          pred)
           # Calculate minus twice the log likelihood function
           ML <- ML+sum(0.5*((((fpred-ydata)^2)/(weight))+log(weight)+log(2*pi)))
           },
           silent=TRUE)
-
+        
         if (class(tmp)=="try-error"){
           cat(paste('An error occured during the computation of the model',
                     'predictions or the negative log likelihood.\n'))
@@ -126,49 +129,52 @@ fitmle <- function(problem=NULL,
       } else {
         # Get the model predictions and corresponding weights
         pred <- problem.eval(subproblem,x)
-        ydata <- as.vector(subproblem$data$ydata)
-        fpred <- as.vector(pred$f)
-        weight <- as.vector(pred$weight)
-        # Remove instances of fpred, weight, ydata corresponding to NA values in ydata
-        fpred <- fpred[which(!is.na(ydata))]
-        weight <- weight[which(!is.na(ydata))]
-        ydata <- ydata[which(!is.na(ydata))]
+        ydata <- subproblem$data$data$DV
+        fpred <- apply(subproblem$data$data,1,
+                       function(x,...) {
+                         pred$f[x[2]+1,which(pred$f[1,]==x[1])]},
+                       pred)
+        weight <- apply(subproblem$data$data,1,
+                        function(x,...) {
+                          pred$weight[x[2]+1,which(pred$weight[1,]==x[1])]},
+                        pred)
         # Calculate minus twice the log likelihood function
         ML=ML+sum(0.5*((((fpred-ydata)^2)/(weight))+log(weight)+log(2*pi)))
       }
     }
-
-    if (is.null(ML) | is.na(ML))
-      stop('obj.fun: likelihood function cannot be NA or NULL. Check your models functions.',
-           call.=FALSE)
+    
+    if (is.null(ML) | is.na(ML)){
+      warning(paste('\nIn obj.fun: likelihood function was NA or NULL; it was ',
+          'thus coerced to Inf.\nPlease, check your model functions',
+          ' and your parameter definition (especially lower\nand ',
+          'upper boundaries) for potential divisions by 0.',sep=''),
+        immediate.=TRUE)
+      ML <- Inf
+    }
     
     return(ML)
     
   }
-
-# Set adjustable options for the minimization function
+  
+  # Set adjustable options for the minimization function
   options <- optimset(Display='iter',
-                      OutputFcn=myOutputFcn,
+                      OutputFcn=output.fun,
                       MaxIter=estim.options$maxiter,
                       MaxFunEvals=estim.options$maxfunc,
                       TolFun=1e-3,
                       TolX=1e-3)
-
-# Default residual variability model: additive
-  if (is.null(problem$varfun))
-     problem$varfun <- 'weighting.additive'
-
-# Definition of parameter variables
+  
+  # Definition of parameter variables
   # Determine which parameters are fixed or not
   estparam <- problem$init[which(problem$init$isfix==0),]
   fixparam <- problem$init[which(problem$init$isfix==1),]
-
+  
   # initial guess for parameters to be fitted
   x0 <- estparam$value
-
-  # Minization of ML objective function
+  
+  # Minimization of ML objective function
   minimum <- fminsearch(fun=obj.fun,x=x0,options=options)
-
+  
   # Rename and transpose minimum$x
   minimum$estimations <- transpose(minimum$x)
   minimum$x <- NULL
@@ -189,12 +195,12 @@ fitmle <- function(problem=NULL,
   
   # Model parameter estimation constrained to the defined intervals
   estimations <- bound.parameters(x=minimum$estimations,lb=estparam$lb,estparam$ub)
-
+  
   # Final value of the objective function
   fval <- minimum$fval
-
+  
   varargout <- list(estimations=estimations,fval=fval)
-
+  
   return(varargout)
   
 }

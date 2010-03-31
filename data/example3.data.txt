@@ -1,4 +1,0 @@
-'start'
-'Dose ID,Time,Y(1),Y(2)'
-'1,0,NA,NA'
-'1,48,NA,NA'

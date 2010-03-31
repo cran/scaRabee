@@ -2,8 +2,9 @@ require(scaRabee)
 
 # User-prompt: define target directory
 if (interactive()){
-  cat('\nExample 1 - Simulation of a model defined with closed form solution\n\n')
-
+  cat('\nExample 1 - Simulation of a model defined with algebraic equations at the \n')
+  cat('population level\n\n')
+  
   repeat{
     wd <- readline('Enter a path to store the demo files:\n>')
     if (wd!=''){
@@ -69,27 +70,17 @@ if (interactive()){
   return(NULL)
 }
 
-# Set file files
+# Set files
 old.wd <- getwd()
-wd <- paste(wd,'example.1/',sep='')
-ana.file <- paste(wd,'example.1.R',sep='')
+wd <- paste(wd,'example1/',sep='')
+ana.file <- paste(wd,'example1.R',sep='')
 data.file <- paste(wd,'data.csv',sep='')
-dosing.file <- paste(wd,'dosing.csv',sep='')
 param.file <- paste(wd,'initials.csv',sep='')
-cov.file <- paste(wd,'covariates.csv',sep='')
-model.file <- paste(wd,'model.definition/model.R',sep='')
-var.file <- paste(wd,'model.definition/weighting.R',sep='')
-sec.file <- paste(wd,'model.definition/secondary.R',sep='')
+model.file <- paste(wd,'model.txt',sep='')
 
 # Copy files
-data(example1.covariates,
-     example1.data,
-     example1.dosing,
-     example1.initials,
-     example1.model,
-     example1,
-     example1.secondary,
-     example1.weighting)
+data(example1.data,
+     example1.initials)
 
 # Create main and model.definition directory
 if (file.exists(wd)) {
@@ -97,99 +88,44 @@ if (file.exists(wd)) {
                      'Please retry using a different target directory.\n',sep=''),wd),
        call.=FALSE)
 }
-
-dir.create(wd)
-dir.create(paste(wd,'model.definition/',sep=''))
+scarabee.new(name='example1',
+             path=wd,
+             type='simulation',
+             method='population',
+             template='explicit')
 setwd(wd)
 
-# Create main analysis script
-tmp <- example1
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=ana.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
+# Update the data file
+write.table(example1.data,
+  file=data.file,
+  sep=',',
+  quote=FALSE,
+  row.names=FALSE,
+  append=FALSE)
 
-# Create input files
-  # Create data file
-  tmp <- example1.data
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=data.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
+# Update the parameter file
+write.table(example1.initials,
+  file=param.file,
+  sep=',',
+  quote=FALSE,
+  row.names=FALSE,
+  col.names=FALSE,
+  append=TRUE)
 
-  # Create dosing file
-  tmp <- example1.dosing
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=dosing.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
-
-  # Create initials file
-  tmp <- example1.initials
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=param.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
-
-  # Create covariates file
-  tmp <- example1.covariates
-  tmp[,1] <- as.character(tmp[,1])
-  tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-  write.table(tmp,
-              file=cov.file,
-              sep='\n',
-              quote=FALSE,
-              row.names=FALSE,
-              col.names=FALSE)
-
-# Create variance/weighting file
-tmp <- example1.weighting
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=var.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
-
-# Create secondary file
-tmp <- example1.secondary
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=sec.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
-
-# Create model file
-tmp <- example1.model
-tmp[,1] <- as.character(tmp[,1])
-tmp <- sapply(tmp, function(x) gsub('@newline@','',x))
-write.table(tmp,
-            file=model.file,
-            sep='\n',
-            quote=FALSE,
-            row.names=FALSE,
-            col.names=FALSE)
+# Update the model file
+tmp <- c('$ANALYSIS example2',
+  '',
+  '$OUTPUT',
+  '  ke <- cl/vc',
+  '  flag <- ifelse((times-2)>0,1,0)',
+  '',
+  '  Cp <- (DOSE[1]*500/vc)*((1/ke)*(1-flag*(1-exp(-ke*(times-2)))-exp(-ke*times)))',
+  '  y <- rbind(log(Cp),',
+  '             base*(1-imax*Cp/(ic50+Cp)))')
+write(tmp,
+  file=model.file,
+  sep='\n',
+  append=FALSE)
 
 # Run example 1
 source(ana.file)

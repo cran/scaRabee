@@ -1,4 +1,4 @@
-%Copyright (c) 2009, 2010 Sebastien Bihorel
+%Copyright (c) 2009-2011 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -24,47 +24,64 @@
 }
 \description{
   \code{estimation.plot} is a secondary function called at the end of the
-  estimations runs. It generates plots from the iteration log file and the
-  predictions & residual file. Those plots are: a figure summarizing the changes
+  estimation runs. It generates plots from the iteration log file and the
+  prediction & residual file. Those plots are: a figure summarizing the changes
   in the objective function and the estimated parameter values as a function of
-  the iteration plus, for each sub-problem, a figure overlaying model
-  predictions and observed data, and another figure showing 4 goodness-of-fit
-  plots (predictions vs observations, weighted residuals vs time, weighted
-  residuals vs observations, weighted residuals vs predictions). See
-  \code{vignette('scaRabee',package='scaRabee')} for more details.
+  the iteration plus, for each subject and sub-problem (i.e. treatment), a 
+  figure overlaying model predictions and observed data, and another figure 
+  showing 4 goodness-of-fit plots (predictions vs observations, weighted 
+  residuals vs time, weighted residuals vs observations, weighted residuals vs 
+  predictions). See \code{vignette('scaRabee',package='scaRabee')} for more 
+  details. \code{estimation.plot} is typically not called directly by users.
 }
 \usage{
   estimation.plot(problem = NULL,
-              Fit = NULL,
-              files = NULL)
+                  Fit = NULL,
+                  files = NULL)
 }
 \arguments{
   \item{problem}{A list containing the following levels:\describe{
-     \item{data}{A list containing the following levels:\describe{
-                  \item{xdata}{1 x m matrix of independent variable.}
-                  \item{ydata}{n x m matrix of observations from model states.}
-                  \item{ids}{Data.frame of indices for data subsetting (output
-                    from \code{find.id}).}
-                }}
-     \item{dosing}{A list containing the following levels:\describe{
-                     \item{history}{d x 4 data.frame of dosing history.}
-                     \item{ids}{data.frame of indices for dosing subsetting
-                       (output from \code{find.id}).}
-                  }}
-     \item{cov}{A list containing the following levels:\describe{
-                  \item{data}{c x t data.frame of covariate history.}
-                  \item{ids}{Data.frame of indices for cov subsetting (output
-                    from \code{find.id}).}
-               }}
-     \item{states}{Indices of the states to be output by the model.}
-     \item{init}{A data.frame of parameter data with the following columns:
-       'names', 'type', 'value', 'isfix', 'lb', and 'ub'.}
-     \item{debugmode}{Logical indicator of debugging mode.}
-     \item{modfun}{Model function.}
-     \item{varfun}{Variance function; if empty \code{weighting.additive} is
-       used.}
-     \item{secfun}{Secondary parameter function.}
-     }
+    \item{data}{A list which content depends on the scope of the analysis. If 
+      the analysis was run at the level of the subject, \code{data} contains as 
+      many levels as the number of subjects in the dataset, plus the \code{ids}
+      level containing the vector of identification numbers of all subjects 
+      included in the analysis population. If the analysis was run at the level 
+      of the population, \code{data} contains only one level of data and 
+      \code{ids} is set to 1.
+      
+      Each subject-specific level contains as many levels as there are treatment
+      levels for this subject, plus the \code{trts} level listing all treatments
+      for this subject, and the \code{id} level giving the identification number
+      of the subject. 
+      
+      Each treatment-specific levels is a list containing the following levels: 
+      \describe{
+        \item{cov}{mij x 3 data.frame containing the times of observations of the
+          dependent variables (extracted from the TIME variable), the indicators
+          of the type of dependent variables (extracted from the CMT variable),
+          and the actual dependent variable observations (extracted from the 
+          DV variable) for this particular treatment and this particular 
+          subject.}
+        \item{cov}{mij x c data.frame containing the times of observations of 
+          the dependent variables (extracted from the TIME variable) and all the
+          covariates identified for this particular treatment and this 
+          particular subject.}
+        \item{bolus}{bij x 4 data.frame providing the instantaneous inputs 
+          for a treatment and individual.}
+        \item{infusion}{fij x (4+c) data.frame providing the zero-order inputs for
+          a treatment and individual.}
+        \item{trt}{the particular treatment identifier.}}
+      }
+    \item{method}{A character string, indicating the scale of the analysis. Should
+       be 'population' or 'subject'.}
+    \item{init}{A data.frame of parameter data with the following columns:
+      'names', 'type', 'value', 'isfix', 'lb', and 'ub'.}
+    \item{debugmode}{Logical indicator of debugging mode.}
+    \item{modfun}{Model function.}
+    \item{hbsize}{An integer scalar providing the size of the history buffer for
+      the solver of delay differential equations. This variable is ignored if
+      the model file does not contain a $DDE tag.}
+    }
   }
   \item{Fit}{A list containing the following elements:\describe{
     \item{estimations}{The vector of final parameter estimates.}
@@ -76,13 +93,15 @@
     \item{cor}{The upper triangle of the correlation matrix for the parameter
       estimates.}
     \item{cv}{The coefficients of variations for the parameter estimates.}
-    \item{delta}{The intervals used for the computation of confidence
-      intervals.}
     \item{ci}{The confidence interval for the parameter estimates.}
     \item{AIC}{The Akaike Information Criterion.}
     \item{sec}{A list of data related to the secondary parameters, containing
       the following elements:\describe{
-        \item{estimates}{A vector of secondary parameter estimates.}
+        \item{estimates}{The vector of secondary parameter estimates calculated
+          using the initial estimates of the primary model parameters.}
+        \item{names}{The vector of names of the secondary parameter estimates.}
+        \item{pder}{The matrix of partial derivatives for the secondary
+          parameter estimates.}
         \item{cov}{The matrix of covariance for the secondary parameter
           estimates.}
         \item{cv}{The coefficients of variations for the secondary parameter
@@ -91,41 +110,41 @@
           estimates.}
         }
       }
+    \item{orderedfixed}{A data.frame with the same structure as
+      \code{problem$init} but only containing the sorted fixed estimates.
+      The sorting is performed by \code{order.param.list}.}
+    \item{orderedinitial}{A data.frame with the same content as
+      \code{problem$init} but sorted by \code{order.param.list}.}
     }
   }
   \item{files}{A list of input used for the analysis. The following elements are
     expected and none of them could be null: \describe{
       \item{data}{A .csv file located in the working directory, which contains
-        the observations of the dependent variable(s) to be modeled. The
-        expected format of this file is described in details in
-        \code{vignette('scaRabee',package='scaRabee')}.}
+        the dosing information, the observations of the dependent variable(s)
+        to be modeled, and possibly covariate information. The expected format 
+        of this file is described in details in \code{vignette('scaRabee',
+        package='scaRabee')}.}
       \item{param}{A .csv file located in the working directory, which contains
         the initial guess(es) for the model parameter(s) to be optimized or used
         for model simulation. The expected format of this file is described in
         details in \code{vignette('scaRabee',package='scaRabee')}.}
-      \item{dose}{A .csv file located in the working directory, which contains
-        the dosing information. The expected format of this file is described in
-        details in \code{vignette('scaRabee',package='scaRabee')}.}
-      \item{cov}{A .csv file located in the working directory, which contains
-        the values of one or more covariates that may or may or be used within
-        the model. The expected format of this file is described in details in
-        \code{vignette('scaRabee',package='scaRabee')}.}
-      \item{model}{A .R file located in the 'model.definition'
-        sub-directory in the working directory, which defines the model. Models
-        specified with explicit, ordinary or delayed differential equations
-        should be preferentially defined using the provided templates. More
-        details about the expected structure of this file is provided in
-        \code{vignette('scaRabee',package='scaRabee')}, in case the user would
-        want to develop her/his own template.}
-      \item{var}{A .R file located in the 'model.definition' sub-directory
-        in the working directory, which defines the model of residual
-        variability. More details about the expected content of this file is
-        provided in \code{vignette('scaRabee',package='scaRabee')}.}
-      \item{sec}{A .R file located in the 'model.definition' sub-directory
-        in the working directory, which defines the method of computation of
-        secondary parameters (derived from the fixed or estimated model
-        parameters). More details about the expected content of this file is
-        provided in \code{vignette('scaRabee',package='scaRabee')}.}
+      \item{model}{A text file located in the working directory, which defines 
+        the model. Models specified with explicit, ordinary or delay 
+        differential equations are expected to respect a certain syntax and 
+        organization detailed in \code{vignette('scaRabee',package='scaRabee')}.}
+      \item{iter}{A .csv file reporting the values of the objective function
+        and estimates of model parameters at each iteration.}
+      \item{report}{A text file reporting for each individual in the dataset the
+        final parameter estimates for structural model parameters, residual 
+        variability and secondary parameters as well as the related statistics 
+        (coefficients of variation, confidence intervals, covariance and 
+        correlation matrix).}
+      \item{pred}{A .csv file reporting the predictions and calculated residuals
+        for each individual in the dataset.}
+      \item{est}{A .csv file reporting the final parameter estimates for each
+        individual in the dataset.}
+      \item{sim}{A .csv file reporting the simulated model predictions for each 
+        individual in the dataset. (Not used for estimation runs).}
     }
   }
 }

@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -19,238 +19,274 @@
 #
 
 scarabee.analysis <- function(files=NULL,
-                              states=NULL,
+                              method='population',
                               runtype=NULL,
                               debugmode=FALSE,
                               estim.options=NULL,
-                              analysis='myanalysis') {
-
+                              npts=NULL,
+                              alpha=NULL,
+                              dde.options=list(dt=0.1,
+                                               hbsize=10000)
+                              ) {
+  
   oldwd <- getwd()
-
+  
   anatry <- try({
-
+  
     # Check files
     if (!is.null(files)){
-      file.names <- c('data','param','dose','cov','model','var','sec')
+      file.names <- c('data','param','model')
       if (is.list(files)){
         if (any(is.na(match(names(files),file.names))))
-          stop(sprintf(paste('scarabee.analysis: files must be a list with',
-                            'the following items:\n%s %s %s %s %s %s %s',sep=''),
-                      'data','param','dose','cov','model','var','sec'),
-              call.=FALSE)
+          stop(paste('files argument must be a list with the following ',
+                     'items: \'data\', \'param\',\n  and \'model\'', sep=''))
         if (any(sapply(file,is.null))){
-          stop('scarabee.analysis: one or more element of files are NULL.',
-              call.=FALSE)
+          stop('one or more element of the files argument are NULL.')
         }
       } else {
-        stop('scarabee.analysis: files must be a list.',
-            call.=FALSE)
+        stop('files argument must be a list.')
       }
     } else {
-      stop('scarabee.analysis: files cannot be NULL.',
-          call.=FALSE)
+      stop('files argument cannot be NULL.')
     }
-
-    # Check states
-    if (!is.numeric(states)) {
-      stop('scarabee.analysis: states should be a vector of numerical values.',
-          call.=FALSE)
+    if (!file.exists(files$data)){
+      stop('the specified dataset file does not exist.')
+    }
+    if (!file.exists(files$model)){
+      stop('the specified model file does not exist.')
+    }
+    
+    # Check method
+    if (is.null(method)){
+      method <- 'population'
     } else {
-      if (any(states<=0)){
-        stop('scarabee.analysis: states should be a vector of positive numerical values.',
-            call.=FALSE)
+      if (length(method)!=1 | !method%in%c('population','subject')){
+        stop('method argument should be \'population\' or \'subject\'.')
       }
     }
-
+    
     # Check runtype
-    if (runtype=='estimation') {
-      issim <- 0
-    } else {
-      if (runtype=='simulation') {
-        issim = 1
-      } else {
-        stop('scarabee.analysis: runtype must either be estimation or simulation.',
-            call.=FALSE)
-      }
+    if (length(runtype)!=1 | 
+        !runtype%in%c('estimation','simulation','gridsearch')){
+      stop(paste('runtype argument must be \'estimation\', \'simulation\', ',
+                 '\'gridsearch\'.',sep=''))
     }
-
+      # Default is estimation (no gridsearch)
+    issim <- 0
+    isgrid <- 0
+    if (runtype=='simulation') issim <- 1
+    if (runtype=='gridsearch') {
+      isgrid <- 1
+      issim <- 1
+      method <- 'population'
+    }
+    
     # Check debugmode
     if (!is.logical(debugmode)){
-      stop('scarabee.analysis: debugmode must either be logical variable.',
-          call.=FALSE)
+      stop('debugmode argument must either be a logical variable.')
     }
-
+    
     # Check estim values
-    if (is.numeric(estim.options$maxiter)!=1 | is.numeric(estim.options$maxfunc)!=1)
-      stop('scarabee.analysis: estim.options$maxiter and estim.options$maxfunc should be numerical values.',
-          call.=FALSE)
+    if (!is.numeric(estim.options$maxiter) | !is.numeric(estim.options$maxfunc))
+      stop(paste('estim.options$maxiter and estim.options$maxfunc should ',
+                 'be numerical values.',sep=''))
     if (length(estim.options$maxiter)!=1 | length(estim.options$maxfunc)!=1)
-      stop('scarabee.analysis: estim.options$maxiter and estim.options$maxfunc should only contain one value.',
-          call.=FALSE)
-
-    # Check analysis
-    if (is.na(analysis))
-      analysis <- 'myanalysis'
-
-  ################################################################################
-    # trim the .m extension in modelfile, varfile, and secfile
-    files$model <- gsub('[.]R','',files$model)
-    files$var   <- gsub('[.]R','',files$var)
-    files$sec   <- gsub('[.]R','',files$sec)
-
+      stop(paste('estim.options$maxiter and estim.options$maxfunc should ',
+                 'only contain one value.',sep=''))
+    
+    # Check npts
+    if (!is.null(npts)){
+      if (!is.numeric(npts) | length(npts)!=1)
+        stop('npts argument should be a single numerical value.')
+      npts <-as.integer(npts)
+    }
+    
+    # Check alpha
+    if (!is.null(alpha)){
+      if (any(!is.numeric(alpha)))
+        stop('alpha argument is not numeric.')
+      if (any(alpha<=1))
+        stop('alpha cannot contain value(s) below 1.')
+    }
+    
+    # Check dde.options
+    if (is.null(dde.options)){
+      dt <- NULL
+      hbsize <- NULL
+    } else {
+      if (!(is.list(dde.options) && all(names(dde.options)==c('dt','hbsize'))))
+        stop('dde.options argument must be a list with 2 levels: dt and hbsize.')
+      
+      if (!is.null(dde.options$dt)){
+        if (!(is.numeric(dde.options$dt) && dde.options$dt>0))
+          stop('dde.options$dt argument is not numeric or not positive')
+      }
+      
+      if (!is.null(dde.options$hbsize)){
+        if (!(is.numeric(dde.options$hbsize) && dde.options$hbsize>0))
+        stop('dde.options$hbsize argument is not numeric or not positive')
+      }
+      
+      dt <- dde.options$dt
+      hbsize <- dde.options$hbsize
+      
+    }
+  ##############################################################################
+    
+    # 1- process mode file
+    code <- scarabee.read.model(files=files, runtype=runtype)
+      analysis <- code$name
+      code$name <- NULL
+    
+    # create file names
+    files$newdata <- NULL
     files$iter   <- paste(analysis,'.iterations.csv',sep='')
     files$report <- paste(analysis,'.report.txt',sep='')
     files$pred   <- paste(analysis,'.predictions.csv',sep='')
+    files$est    <- paste(analysis,'.estimates.csv',sep='')
     files$sim    <- paste(analysis,'.simulations.csv',sep='')
-
-    # Create working/backup directory
+    
+    # 2- import parameter file (names + initial guess)
+    param <- scarabee.read.parms(files=files)
+    
+    # 3- process data to be fitted
+    tmp <- scarabee.read.data(files=files,
+                              method=method)
+    
+    data <- tmp$data
+    new.data.file <- tmp$new
+    if (new.data.file) {
+      files$newdata <- paste(files$data, '.new', sep='')
+    }
+    
+    scarabee.check.reserved(names=param[,1],names(data[[1]][[1]]$cov)[-1])
+    
+    # 4- create working/backup directory
     scarabee.directory(curwd=getwd(),
-                      files=files,
-                      runtype=runtype,
-                      analysis=analysis)
-
-  ################################################################################
-    # Model input importation step
-    nstate <- length(states)
-
-    # 0- parse the model definition files
-    for (file in list.files('model.definition/', pattern='\\.[Rr]$')){
-      source(paste('model.definition/',file,sep=''))
-    }
-
-    # 1- imports data to be fitted
-    data <- as.matrix(read.csv(file=files$data,
-                              header=TRUE,
-                              as.is=TRUE))
-
-    # 2- imports parameter file (names + initial guess)
-    param <- read.csv(file=files$param,
-                      header=TRUE,
-                      as.is=TRUE,
-                      col.names=c('names','type','value','isfix','lb','ub'))
-
-    if (dim(param)[1]==0) {
-      stop(sprintf('myanalysis: The matrix of parameters created from %s is empty. Please, check the content of your file.',
-                  files$par),
-          call.=FALSE)
-    }
-
-    if (any(param[,3]< 0))
-      stop('scarabee.analysis: Negative values for model parameters are not allowed.',
-          call.=FALSE)
-
-    # 3- imports dosing history
-    dosing <- read.csv(file=files$dose,
-                      header=TRUE,
-                      as.is=TRUE)
-
-    # 4- imports covariate data
-    covariates <- read.csv(file=files$cov,
-                          header=TRUE,
-                          as.is=TRUE)
-
-    #########################################################################
-    # Checks if the IDs used in the dosing, data, covariates are the same
-    dataIDs   <- find.id(data[,1])
-    dosingIDs <- find.id(dosing[,1])
-    covIDs    <- find.id(covariates[,1])
-
-    if (dim(covariates)[1]!=0){
-      if (sum(dataIDs[,1]!=dosingIDs[,1])!=0 | sum(dataIDs[,1]!=covIDs[,1])!=0){
-        stop(paste('scarabee.analysis: The levels of IDs used in the data, dosing, and covariate',
-                  'files should be the same.'),
-            call.=FALSE)
-      }
-    } else {
-      if (sum(dataIDs[,1]!=dosingIDs[,1])!=0){
-        stop(paste('scarabee.analysis: The levels of IDs used in the data and dosing',
-                  'files should be the same.'),
-            call.=FALSE)
-      }
-    }
-
-    #########################################################################
-    # Checks if ID set of data contain at least 2 time points
-    for (id in dataIDs[,1]){
-      if (length(which(data[,1]==id))<2){
-        stop(sprintf(paste('scarabee.analysis: The matrix of data created from %s ',
-                          'should contain at least two time points per Dose ID.\n',
-                          'Please, check the content of your file.',sep=''),
-                    files$data),
-            call.=FALSE)
-      }
-    }
-
+                       files=files,
+                       runtype=runtype,
+                       analysis=analysis)
+    
     #########################################################################
     # Definition of some variables to pass to model and estimation functions
-    problem <- list()
-    problem$data$xdata     <- transpose(data[,2])
-    problem$data$ydata     <- transpose(data[,3:(nstate+2)])
-    problem$data$ids       <- dataIDs
-    problem$dosing$history <- dosing[,2:5]
-    problem$dosing$ids     <- dosingIDs
-    problem$cov$data       <- covariates[,-1]
-    problem$cov$ids        <- covIDs
-    problem$states         <- states
-    problem$init           <- param
-    problem$debugmode      <- debugmode
-    problem$modfun         <- files$model
-    problem$varfun         <- files$var
-    problem$secfun         <- files$sec
-
-
+    problem           <- list()
+    problem$code      <- code
+    problem$data      <- data
+    problem$method    <- method
+    problem$init      <- param
+    problem$debugmode <- debugmode
+    problem$modfun    <- code$template
+    problem$ddedt     <- NA
+    if(is.null(dt)){
+      problem[7] <- list(NULL)
+    } else {
+      problem[7] <- dt
+    }
+    problem$hbsize    <- hbsize
+    
     # Divert the output if necessary
     if (!interactive())
       sink(file=paste(analysis,'.log',sep=''))
-
+    
+    if (isgrid == 1) {
+      # Initializing report files
+      initialize.report(problem=problem,param=param,files=files,isgrid=isgrid)
+      
+      # Evaluate grid
+      cat(paste('* Direct grid search started at: ', Sys.time(),'\n\n',sep=''))
+      fgrid <- scarabee.gridsearch(problem=problem,npts=npts,
+                                   alpha=alpha,files=files)
+      
+      # Edition of the report file
+      finalize.grid.report(problem=problem,fgrid=fgrid,files=files)
+      
+      # Update initial estimates in problem
+      problem$init$value <- as.numeric(fgrid[1,1:(dim(fgrid)[2]-2)])
+      
+      cat('\n* Simulating model using the best solution from grid search\n\n')
+    }
+    
     if (issim == 0) {
       # Estimation run
-      cat('Optimization started\n')
-
+      
+      # Check if all parameters are fixed
+      if (all(problem$init$isfix==1))
+        stop(paste('model optimization cannot be performed ',
+                   'when all parameters are fixed. Estimation aborted.',sep=''))
+      
+      # Check models for all subjects
+      for (id in problem$data$ids){
+        # Create subproblem for id
+        idproblem <- problem[c('code','method','init','debugmode','modfun','dt',
+                               'hbsize')]
+        idproblem$data <- problem$data[[id]]
+        
+        # check model
+        scarabee.check.model(problem=idproblem,files=files)
+      }
+      
       # Initializing and preparing iteration log and report files
-      init.report(param=param,files=files)
-
-      # Fittings;
+      initialize.report(problem=problem,param=param,files=files)
+      
+      # Fittings
+      for (id in problem$data$ids){
+        # Estimation start
+        cat('\n','* Subject: ',id,'\n')
+        cat('Optimization started\n')
+        
+        # Update report file
+        write(paste('\n','* Subject: ',id,sep=''),
+              file=files$report,
+              append=TRUE,
+              sep='\n')
+        
+        # Create subproblem for id
+        idproblem <- problem[c('code','method','init','debugmode','modfun','dt',
+                               'hbsize')]
+        idproblem$data <- problem$data[[id]]
+        
         # parameter optimization
-        Fit <- fitmle(problem=problem,estim.options=estim.options,files=files)
-
+        Fit <- fitmle(problem=idproblem,estim.options=estim.options,files=files)
+        
         # covariance step
-        Fit <- fitmle.cov(problem=problem,Fit=Fit)
-
-      # Edition of the report file
-      Fit <- finalize.report(problem=problem,Fit=Fit,files=files)
-
-      # Creation of a file containing final model predictions, residuals and
-      # weighted residual for all states
-      residual.report(problem=problem,Fit=Fit,files=files)
-
+        Fit <- fitmle.cov(problem=idproblem,Fit=Fit)
+        
+        # Edition of the report file
+        Fit <- finalize.report(problem=idproblem,Fit=Fit,files=files)
+        
+        # Creation of a file containing final model predictions, residuals and
+        # weighted residual for all states
+        residual.report(problem=idproblem,Fit=Fit,files=files)
+        
+        cat('\nOptimization completed.\n')
+      }
       # Creation of some diagnostic plots
       estimation.plot(problem=problem,Fit=Fit,files=files)
-
-      cat('\nOptimization terminated. Please, see report.txt file for more details.\n')
-
+      
+      cat('\nPlease, see report.txt file for more details.\n')
+    
     } else {
       # Simulation run
       cat(paste('Simulation started at: ', Sys.time(),
                 '. This operation can take a few momemt.\n',sep=''))
-
+      
       # Evaluates the model given the parameter estimates and saves to file
-      Fsim <- simulation.report(problem=problem,files=files)
-
+      simdf <- simulation.report(problem=problem,files=files)
+      
       # Plot simulations
-      simulation.plot(problem=problem,Fsim=Fsim,files=files)
-
-      cat(paste('\nSimulation complete at:',Sys.time(),'\n',sep=''))
-      cat(paste('Model predictions were saved into ',files$sim,'.\n',sep=''))
+      simulation.plot(problem=problem,simdf=simdf,files=files)
+      
+      cat(paste('\nSimulation complete at: ',Sys.time(),'\n',sep=''))
+      cat(paste('Model predictions were saved into ',files$sim,'.\n\n',sep=''))
     }
-
+    
     # Wrap-up things
     scarabee.clean(files=files,analysis=analysis)
-
+    
     if (!interactive())
       sink()
   })
-
+  
   if (class(anatry)=="try-error") setwd(oldwd)
   
 }

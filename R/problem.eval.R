@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -18,48 +18,93 @@
 #    along with scaRabee.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-problem.eval <- function(subproblem=NULL,x=NULL){
-
-  # Copie subproblem$init in newparam and replaces the new estimates in newparam
+problem.eval <- function(subproblem=NULL,x=NULL,grid=FALSE,check=FALSE){
+  
+  # Copy subproblem$init in newparam and replace the new estimates in newparam
   newparam <- subproblem$init
-  npar     <- length(newparam$names)
-  estindex <- 1
-  for (i in 1:npar){
-    if (newparam$isfix[i]==0){
-      newparam$value[i] <- x[estindex]
-      estindex <- estindex + 1
+  
+  if (grid) {
+    index <- which(newparam$isfix==0)
+    newparam$value[index] <- x[index]
+  } else {
+    npar     <- length(newparam$names)
+    estindex <- 1
+    for (i in 1:npar){
+      if (newparam$isfix[i]==0){
+        newparam$value[i] <- x[estindex]
+        estindex <- estindex + 1
+      }
     }
   }
-
+  
+  # Retrieve primary parameters
+  parms <- c(get.parms.data(x=newparam,which='value',type='P'),
+             get.parms.data(x=newparam,which='value',type='L'),
+             get.parms.data(x=newparam,which='value',type='IC'),
+             get.parms.data(x=newparam,which='value',type='V'))
+  names(parms) <- c(get.parms.data(x=newparam,which='names',type='P'),
+                    get.parms.data(x=newparam,which='names',type='L'),
+                    get.parms.data(x=newparam,which='names',type='IC'),
+                    get.parms.data(x=newparam,which='names',type='V'))
+  attr(parms,'type') <- c(get.parms.data(x=newparam,which='type',type='P'),
+                          get.parms.data(x=newparam,which='type',type='L'),
+                          get.parms.data(x=newparam,which='type',type='IC'),
+                          get.parms.data(x=newparam,which='type',type='V'))
+  
+  # Retrieve derived parameters
+  if (subproblem$modfun%in%c('ode.model','dde.model')){
+    derparms <- derived.parms(parms=parms,
+                              covdata=subproblem$cov,
+                              codederiv=subproblem$code$deriv,
+                              check=check)
+  } else {
+    derparms <- NULL
+  }
+  
   # Evaluate the full model function modfun
-  fpred <- do.call(eval(parse(text=subproblem$modfun)),
-                   list(x=newparam,
-                        dosing=subproblem$dosing$history,
-                        xdata=subproblem$data$xdata,
-                        covdata=subproblem$cov$data))
-
+  if (subproblem$modfun=='dde.model'){
+    fpred <- do.call(eval(parse(text=subproblem$modfun)),
+                     list(parms=parms,
+                          derparms=derparms,
+                          code=subproblem$code,
+                          bolus=subproblem$bolus,
+                          infusion=subproblem$infusion,
+                          xdata=subproblem$data$xdata,
+                          covdata=subproblem$cov,
+                          check=check,
+                          ddedt=subproblem$ddedt,
+                          hbsize=subproblem$hbsize))
+  } else {
+    fpred <- do.call(eval(parse(text=subproblem$modfun)),
+                     list(parms=parms,
+                          derparms=derparms,
+                          code=subproblem$code,
+                          bolus=subproblem$bolus,
+                          infusion=subproblem$infusion,
+                          xdata=subproblem$data$xdata,
+                          covdata=subproblem$cov,
+                          check=check))
+  }
+  
   # Convert fpred to matrix if is a vector
   if (size(fpred,1)==1)
     fpred <- matrix(fpred,nrow=1)
-
+  
   # Check if fpred contains imaginary numbers
   if (any(is.complex(fpred)))
     cat(' Imaginary number(s) predicted.\n')
-
-  # Evaluate the variance function varfun
-#  varpar <- get.param.data(x=newparam,which='value',type='V')
-  varpar <- newparam[which(newparam$type=='V'),]
   
-  if (is.null(varpar)){
-    weight <- do.call(eval(parse(text=subproblem$varfun)),
-                      list(x=NULL,f=fpred,xdata=subproblem$data$xdata))
-  } else {
-    weight <- do.call(eval(parse(text=subproblem$varfun)),
-                      list(x=varpar,f=fpred,xdata=subproblem$data$xdata))
-  }
-
-  varargout <- list(f=fpred,weight=weight)
-
+  # Evaluate the variance function varfun
+  weight <- weighting(parms=parms,
+                      derparms=derparms,
+                      codevar=subproblem$code$var,
+                      y=fpred,
+                      xdata=subproblem$data$xdata,
+                      check=check)
+  
+  varargout <- list(f=rbind(subproblem$data$xdata,fpred),
+                    weight=rbind(subproblem$data$xdata,weight))
+  
   return(varargout)
 
 }

@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009, 2010 Sebastien Bihorel
+#Copyright (c) 2009-2011 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -20,12 +20,13 @@
 
 fitmle.cov <- function(problem=NULL,Fit=NULL){
 
-# Default residual variability model: additive
-  if (is.null(problem$varfun))
-     problem$varfun <- 'weighting.additive'
-
 # Preparing of fitted data (i.e., the observations)
-  ydata <- as.vector(problem$data$ydata);
+  trts <- problem$data$trts
+  ydata <- c()
+  
+  for (i in trts){
+    ydata <- c(ydata,problem$data[[i]]$ana$DV)
+  }
   
 # Computation of the covariance matrix. The function also returns indices
   # to reorder x , in case the paramaters were not initially entered according
@@ -38,36 +39,42 @@ fitmle.cov <- function(problem=NULL,Fit=NULL){
   x <- transpose(Fit$orderedestimations$value)
   
   # Computes a series of derived statistics
+    
+  if (!any(Fit$cov=='singular')){
     # upper triangle of the correlation matrix
-  Fit$cor <- Fit$cov/sqrt(transpose(diag(Fit$cov))%*%diag(Fit$cov))
-  Fit$cor[lower.tri(Fit$cor)] <- 0
-
+    Fit$cor <- Fit$cov/sqrt(transpose(diag(Fit$cov))%*%diag(Fit$cov))
+    Fit$cor[lower.tri(Fit$cor)] <- 0
+    
     # coefficients of variation
-  Fit$cv  <- 100*sqrt(diag(Fit$cov))/x
-
+    Fit$cv  <- 100*sqrt(diag(Fit$cov))/x
+    
     # interval used for confidence interval calculation
-  delta   <- sqrt(diag(Fit$cov))*qt(0.975,length(ydata)-length(x))
-
+    delta   <- sqrt(diag(Fit$cov))*qt(0.975,length(ydata)-length(x))
+    
     # confidence intervals
-  Fit$ci  <- cbind(x-delta,x+delta)
-
-    # Aikaike information criterium
+    Fit$ci  <- cbind(x-delta,x+delta)
+      
+  }
+  
+  # Aikaike information criterium
   Fit$AIC <- 2*(Fit$fval+length(x))
   
   # Computes statistics on secondary parameters, if any
   Fit$sec <- get.secondary(subproblem=problem,x=Fit$estimations)
   if (length(Fit$sec$estimates)!=0){
-    Fit$sec$cov <- transpose(Fit$sec$pder) %*% Fit$cov %*% Fit$sec$pder
-    Fit$sec$cv  <- 100*sqrt(diag(Fit$sec$cov))/Fit$sec$estimates
-    delta       <- sqrt(diag(Fit$sec$cov))*qt(0.975,length(ydata)-length(x))
-    Fit$sec$ci  <- cbind(Fit$sec$estimates-delta,Fit$sec$estimates+delta)
+    if (!any(Fit$cov=='singular')){
+      Fit$sec$cov <- transpose(Fit$sec$pder) %*% Fit$cov %*% Fit$sec$pder
+      Fit$sec$cv  <- 100*sqrt(diag(Fit$sec$cov))/Fit$sec$estimates
+      delta       <- sqrt(diag(Fit$sec$cov))*qt(0.975,length(ydata)-length(x))
+      Fit$sec$ci  <- cbind(Fit$sec$estimates-delta,Fit$sec$estimates+delta)
+    }
   } else {
     Fit$sec$cov <- NULL
     Fit$sec$cv  <- NULL
     Fit$sec$ci  <- NULL
   }  
-
+  
   return(Fit)
-
+  
 }
 
