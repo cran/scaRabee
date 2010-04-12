@@ -1,8 +1,8 @@
 Package: scaRabee
 Type: Package
 Title: Optimization Toolkit for Pharmacokinetic-Pharmacodynamic Models
-Version: 1.1-0
-Date: 2010-03-31
+Version: 1.1-1
+Date: 2010-04-12
 Author: Sebastien Bihorel
 Maintainer: Sebastien Bihorel <sb.pmlab@gmail.com>
 Description: scaRabee is a port of the Scarabee toolkit originally
@@ -16,6 +16,6 @@ Depends: neldermead, optimsimplex, optimbase, lattice, grid, deSolve,
         PBSddesolve, utils
 License: GPL-3
 LazyLoad: yes
-Packaged: 2011-04-01 04:05:06 UTC; sebastien
+Packaged: 2011-04-13 02:53:21 UTC; sebastien
 Repository: CRAN
-Date/Publication: 2011-04-01 06:27:47
+Date/Publication: 2011-04-13 09:26:06

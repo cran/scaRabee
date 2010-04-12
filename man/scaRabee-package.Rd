@@ -32,8 +32,8 @@
 \tabular{ll}{
 Package: \tab scaRabee\cr
 Type: \tab Package\cr
-Version: \tab 1.1-0\cr
-Date: \tab 2011-03-31\cr
+Version: \tab 1.1-1\cr
+Date: \tab 2011-04-12\cr
 License: \tab GPL-v3 \cr
 LazyLoad: \tab yes
 }

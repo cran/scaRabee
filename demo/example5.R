@@ -1,24 +1,33 @@
 require(scaRabee)
 
+if (.Platform$OS.type=="windows"){
+  end.of.folder <- ''
+} else {
+  end.of.folder <- '/'
+}
+
 # User-prompt: define target directory
 if (interactive()){
-  cat('\nExample 5 - Simulation of a model defined with algebraic equations at the \n')
+  cat('\nExample 5 - Estimation of a model defined with algebraic equations at the \n')
   cat('population level\n\n')
   
   repeat{
     wd <- readline('Enter a path to store the demo files:\n>')
     if (wd!=''){
+      if (substring(wd,nchar(wd),nchar(wd))!='/'){
+        wd <- paste(wd,end.of.folder,sep='')
+      }
       if (!file.exists(wd)){
         action <- readline(sprintf(paste('\nDirectory \'%s\' does not exist:\n',
               '  [c] Continue with current working directory: %s\n',
               '  [r] Retry\n',
               '  [a] Abort\n>',sep=''),wd,getwd()))
         if (action == 'a') {
-          stop(call.=FALSE)
+          stop('Demo aborted',call.=FALSE)
         } else if (action == 'c') {
           wd <- getwd()
           if (substring(wd,nchar(wd),nchar(wd))!='/'){
-            wd <- paste(wd,'/',sep='')
+            wd <- paste(wd,end.of.folder,sep='')
           }
           options(warn=-1)
           nd <- try(file.create(paste(wd,'test.R',sep='')))
@@ -33,7 +42,7 @@ if (interactive()){
         
       } else {
         if (substring(wd,nchar(wd),nchar(wd))!='/'){
-          wd <- paste(wd,'/',sep='')
+          wd <- paste(wd,end.of.folder,sep='')
         }
         options(warn=-1)
         nd <- try(file.create(paste(wd,'test.R',sep='')))
@@ -47,10 +56,10 @@ if (interactive()){
       }
       
     } else {
-          
+      
       wd <- getwd()
       if (substring(wd,nchar(wd),nchar(wd))!='/'){
-        wd <- paste(wd,'/',sep='')
+        wd <- paste(wd,end.of.folder,sep='')
       }
       options(warn=-1)
       if (file.exists(wd))
@@ -72,7 +81,7 @@ if (interactive()){
 
 # Set files
 old.wd <- getwd()
-wd <- paste(wd,'example5/',sep='')
+wd <- paste(wd,'/example5/',sep='')
 ana.file <- paste(wd,'example5.R',sep='')
 data.file <- paste(wd,'data.csv',sep='')
 param.file <- paste(wd,'initials.csv',sep='')
@@ -126,8 +135,8 @@ tmp <- c('$ANALYSIS example5',
   '$VARIANCE',
   '  v <- rbind(CV1^2,',
   '             (CV2^2) * (y[2,]^2))'
-  )
-  
+)
+
 write(tmp,
   file=model.file,
   sep='\n',

@@ -35,7 +35,7 @@
 
 \title{The scaRabee Package: An R-based Tool for Model Simulation and 
   Optimization in Pharmacometrics\\[5mm]
-  Version 1.1-0\\[5mm]}
+  Version 1.1-1\\[5mm]}
 \author{S\'ebastien Bihorel}
 
 \begin{document}
@@ -43,7 +43,7 @@
 \thispagestyle{empty}
 
 \begin{center}
-  \includegraphics[width=50mm,height=50mm]{scarabee_R.png} \\[25mm]
+  \includegraphics[width=50mm,height=50mm]{scarabee_R.pdf} \\[25mm]
 \end{center}
 
 \begin{flushleft}
@@ -79,10 +79,13 @@ options(width=70)
 \cleardoublepage
 \section{Introduction}
 \scaRabee{} is a toolkit for modeling and simulation primarily intended for the 
-field of pharmacometrics. It is a \R{} port \cite{Rcitation} of \pkg{Scarabee},
-a Matlab-based application developed for the simulation and optimization of
-pharmacokinetic and/or pharmacodynamic models specified with algebraic equations,
-ordinary or delay differential equations \cite{Bihorel.2009}.
+field of pharmacometrics. It was initially a \R{} port \cite{Rcitation} of 
+\pkg{Scarabee}, a Matlab-based application developed for the simulation and 
+optimization of pharmacokinetic and/or pharmacodynamic models specified with 
+algebraic equations, ordinary or delay differential equations 
+\cite{Bihorel.2009}. It is now the only version supported and being developed. 
+Since its first release, the \scaRabee{} package has been improved and now 
+contains functionnalities, which are not present in the original Matlab version.  
 
 \subsection{Preliminary notice}
 This vignette constitutes a user manual for \scaRabee{}. This manual assumes 
@@ -113,7 +116,7 @@ Dosing and observations data are now extracted from a single common data file,
 using conventions shared by standard pharmacometric softwares (see Section 
 \ref{editdata}), thus facilitating the transition from one platform to another.
 
-Version 1.1-0 of \scaRabee{} also includes population-specific tools which 
+Version 1.1 of \scaRabee{} also includes population-specific tools which 
 allows simulations at the population or subject level, and model optimization at
 the population or subject level (standard two-stage analysis). This version also
 introduces a direct drig search feature to facilitate the identification of
@@ -125,7 +128,7 @@ initial parameter estimates for population analysis inside or outside
 Pmlab (\url{http://code.google.com/p/pmlab/}), a repository for open-source
 software solutions in pharmacometrics. The most recent version of \scaRabee{}
 can be found in the Downloads section. \scaRabee{} is distributed under a GNU
-General Public License version 3. Please, review the term of this license
+General Public License version 3. Please, review the terms of this license
 before using this package. If this license was not distributed with your copy of
 \scaRabee{}, please visit the GNU Project website (\url{http://www.gnu.org/}).
 
@@ -134,9 +137,9 @@ This package is available as source archive. You are invited to read Section
 6.3 Installing packages from the R Installation and Administration manual 
 \cite{Rinstall.2010} for more details on how to install a source package from a
 local .zip or .tar.gz file on your system. Model optimization in \scaRabee{} (as
-described in \ref{methodo}) relies on functions from the \pkg{neldermead},
-\pkg{optimsimplex}, and \pkg{optimbase} packages, which is also distributed from
-CRAN and Pmlab as compressed archives of the source packages.
+described in Section \ref{methodo}) relies on functions from the \pkg{neldermead},
+\pkg{optimsimplex}, and \pkg{optimbase} packages, which are also distributed 
+from CRAN and Pmlab as compressed archives of the source packages.
 
 \subsection{Credits}
 \scaRabee{} was written by S\'ebastien Bihorel, alumni of the Paris 5 - Ren\'e 
@@ -183,7 +186,7 @@ style, comment our faulty code and clearly marked your editions.
 \section{Types of analysis performed in \scaRabee{}}
   \label{methodo}
 \scaRabee{} allows the optimization and simulation of non-linear systems at the 
-population and subject level but does not implement non-linear mixed effects 
+population and subject levels but does not implement non-linear mixed effects 
 modeling. For each subject included in an analysis, \scaRabee{} allows users to 
 split the analysis problem into subproblems (also referred to as treatments), 
 while still defining a unique model. This feature is especially useful when data 
@@ -217,11 +220,11 @@ na\"ive pooling, or by the standard two-stage approach \cite{Ette.2007}. Note
 that the standard two-stage approach is automated only since version 1.1-0.
 
 \subsection{Direct grid search}
-Direct grid search runs allows to explore the search space of an optimization 
+Direct grid search runs allow to explore the search space of an optimization 
 problem around the initial point \(x_0\) of parameter estimates. This 
 \scaRabee{} feature automatically creates a grid of search points selected 
 around the initial point and evaluates the objective function at each one of 
-this search point. The boundaries of the grid are set either by the lower and 
+these search points. The boundaries of the grid are set either by the lower and 
 upper boundaries set by the users, or by a vector of factors \(\alpha\) applied 
 to \(x_0\) as follows: \([x_{0}/\alpha,x_{0}\times\alpha]\). The number \(npts\) 
 of points evaluated for each parameter (or dimension of the optimization 
@@ -262,14 +265,14 @@ function, contains at least the following files:
   \item[model.txt] the model file ; this file is a text file in which the 
     structural model, residual variability model, and secondary parameter 
     computations are defined. Section \ref{editmodel} describes the syntax that 
-    must be apply to edit this file.
+    must be applied to edit this file.
 \end{description}
 
 While the names of these files correspond to the default assumed by the 
 \code{scarabee.new} function, they can be modified at the user's discretion.
 In this manual, the default files names are used for the sake of simplicity. 
 Finally, please note that you can add any file needed or not for your analysis 
-in your analysis folder. The sections \ref{newanalysis} through \ref{execana} 
+in your analysis folder. The Sections \ref{newanalysis} through \ref{execana} 
 offer a step-by-step description of the analysis process. 
 
 \subsection{Creation of a new analysis folder}
@@ -277,28 +280,25 @@ offer a step-by-step description of the analysis process.
 If you start a brand new data analysis, it is recommended that you open an
 interactive \R{} session, and use the \code{scarabee.new} function to create a 
 new analysis folder that will contain \code{myanalysis.R}, \code{data.csv}, 
-\code{initials.csv}, and \code{model.txt}.
-
-It is recommended that you provide all arguments of \code{scarabee.new} 
-to better set up the new folder:
+\code{initials.csv}, and \code{model.txt}. It is recommended that you provide 
+all arguments of \code{scarabee.new} to better set up the new folder:
 \begin {description}
-  \item[name] controls the name of the analysis, which is used as a base name 
-              for the master \R{} script file (in place of the default 
-              'myanalysis') and is also inserted after the \$ANALYSIS tag in the
-              model file (see Section \ref{editmodel}),
-  \item[path] defines the (absolute or relative) path to the directory to be 
-              created; if the \code{path} argument is NULL, then it is coerced 
-              to \code{name}, thus causing the (tentative) creation of a new 
-              folder named as the \code{name} argument in the current working 
-              directory,
-  \item[type] defines whether the analysis is a simulation (default), an 
-              estimation, or a direct grid search run,
-  \item[method] defines if the analysis is to be performed at the population 
-                (default) or subject level,
-  \item[template] controls which template will be used for \code{model.txt};
-                  templates are available for models defined with algebraic 
-                  ('explicit'), ordinary differential equations ('ode', default),
-                  or delay differential equations ('dde').
+  \item[\code{name}] controls the name of the analysis, which is used as a base 
+    name for the master \R{} script file (in place of the default 'myanalysis') 
+    and is also inserted after the \$ANALYSIS tag in the model file (see Section
+    \ref{editmodel}),
+  \item[\code{path}] defines the (absolute or relative) path to the directory to 
+    be created; if the \code{path} argument is NULL, then it is coerced to 
+    \code{name}, thus causing the (tentative) creation of a new folder named as 
+    the \code{name} argument in the current working directory,
+  \item[\code{type}] defines whether the analysis is a simulation (default), an 
+    estimation, or a direct grid search run,
+  \item[\code{method}] defines if the analysis is to be performed at the 
+    population (default) or subject level,
+  \item[\code{template}] controls which template will be used for 
+    \code{model.txt}; templates are available for models defined with algebraic 
+    ('explicit'), ordinary differential equations ('ode', default), or delay 
+    differential equations ('dde').
 \end{description}
 
 Here is an example of \scaRabee{} folder creation:
@@ -327,8 +327,8 @@ ways:
 \end{enumerate}
 
 Regarless of the chosen method, most analysis files require some form of 
-modification, that are described in section \ref{editdata} through
-\ref{editana}. Symbols and notation used in those sections as well as in the
+modification, that are described in Section \ref{editdata} through
+\ref{editana}. Symbols and notations used in those sections as well as in the
 \scaRabee{} function man pages are summarized in Table \ref{numtable}.
 
 \begin{table}[h]
@@ -382,7 +382,7 @@ the following structure:
 \item{All data variables must be stored in specific columns, each having a 
 unique header. A series of variables with reserved names and expected content
 must be present, but users can add any number of custom (usually numerical) 
-variables. The names and the meaning of the variables required in any 
+variables. The names and the meanings of the variables required in any 
 \scaRabee{} dataset are provided in the following listing, which also includes 
 one useful but optional variable:
   \begin{description}
@@ -479,10 +479,10 @@ considered as covariates.
 The parameter file (named \code{initials.csv} by default) contains the 
 information about the primary model parameters. Derived parameters, \emph{i.e.}
 parameters that are needed for model computations but do not need to be 
-estimated, can be specified in the \$DERIVED block in the model section. 
-Secondary parameters, \emph{i.e.} parameters that are typically not needed for
-model computations but fro which precision statistics are required, can also be
-defined in the model file using the \$SECONDARY block of code.
+estimated, can be specified in the \$DERIVED or \$OUTPUT blocks in the model 
+section. Secondary parameters, \emph{i.e.} parameters that are typically not 
+needed for model computations but fro which precision statistics are required, 
+can also be defined in the model file using the \$SECONDARY block of code.
 
 This parameter file is required in all types of runs, and can be edited
 in any text editor or spreadsheet. All parameter files must
@@ -499,15 +499,15 @@ estimated parameters), with the following structure:
   \begin{center}
   Parameter, Type, Value, Fixed, Lower bound, Upper bound\\
   \end{center} 
-  where Parameter, Type, and Value are the columns of parameter names, type and
-  value, Fixed is the column indicating whether a given parameter should be
+  where Parameter, Type, and Value are the columns of parameter names, types and
+  values, Fixed is the column indicating whether a given parameter should be
   estimated or fixed in an estimation analysis, and Lower bound and Upper bound
   are the columns defining the range of values that a given parameter could
   take.}
 \item{Each line must contain 6 elements separated by commas. There cannot be
   any missing data in this table.}
 \item{The Parameter column can contain numbers or strings of characters,
-  representing the name of your model parameters (number will be handled as
+  representing the name of your model parameters (numbers will be handled as
   strings of characters).}
 \item{The Type column must contain single characters, indicating the type of
   each single parameter. There is four types of variables in Scarabee, so only
@@ -555,8 +555,8 @@ parsed by \scaRabee{}, before each block of \R{} code could be evaluated at
 relevant stages of the analysis process. Within those blocks of code, users can 
 call any \R{} function that would be available in their workspace.
 
-Upon creating of new analysis folder, the model file is pre-filled with the tags
-that are appropriate and required for the specified category of model. The 
+Upon creation of a new analysis folder, the model file is pre-filled with the 
+tags that are appropriate and required for the specified category of model. The 
 complete list of tags required for each category of model is given in Table 
 \ref{modeltagtable}.
 
@@ -595,7 +595,7 @@ coexist within the same model file.
 
 \subsubsection{\$ANALYSIS}
 The \$ANALYSIS tag allows users to provide a name to the analysis, which is used
-to named the folder created to store the results of the analysis (see Section 
+to name the folder created to store the results of the analysis (see Section 
 \ref{execana}) and the analysis report files. The name extracted by \scaRabee{}
 is the first word following the tag.
 
@@ -607,10 +607,11 @@ The \$DERIVED tag is specific to and required for structural models specified
 with ordinary or delay differential equations. It allows users to define derived 
 parameters which could be called later within the \$ODE or \$DDE blocks of code. 
 Within the \$DERIVED block, users can call any primary parameter defined in the 
-parameter file and any covariate name. Only the new \R{} objects created in the 
-\$DERIVED block will be considered as secondary parameters; in other words, all 
-modifications of a primary parameter will be ignored. Furthermore, users can 
-choose to leave this block of code empty, if no derived parameter is needed.
+parameter file and any covariate name to define new objects. Only the new \R{} 
+objects created in the \$DERIVED block will be considered as secondary 
+parameters; in other words, all modifications of a primary parameter will be 
+ignored. Furthermore, users can choose to leave this block of code empty, if no 
+derived parameter is needed.
 
 Although users could choose to define derived parameters within the \$ODE or 
 \$DDE blocks, it is computationally more efficient to define them in the 
@@ -678,9 +679,9 @@ are:
     the \code{approx} function for this purpose (see \code{?approx}).}
 \end{itemize}
 
-\scaRabee{} expects the creation of the \code{dadt} vector, which length 
-\emph{s} defines the number of system states. Note that it is not necessary to 
-include exogenous inputs (boluses and infusions) into the system of differential
+\scaRabee{} expects the creation of the \code{dadt} object, a 
+1\(\times\)\emph{s} matrix of system states. Note that it is not necessary to 
+include exogenous inputs (boluses and infusions) into the system of differential 
 equations, this is automatically done by the code.
 
 \subsubsection{\$DDE}
@@ -705,8 +706,8 @@ are:
     the \code{approx} function for this purpose (see \code{?approx}).}
 \end{itemize}
 
-\scaRabee{} expects the creation of the \code{dadt} vector, which length 
-\emph{s} defines the number of system states. Note that it is not necessary to 
+\scaRabee{} expects the creation of the \code{dadt} object, a 
+1\(\times\)\emph{s} matrix of system states. Note that it is not necessary to 
 include exogenous inputs (boluses and infusions) into the system of differential
 equations, this is automatically done by the code.
 
@@ -889,11 +890,12 @@ name has the following structure:
 \begin{center}
 <myanalysis>.<type>.\#
 \end{center}
-where <myanalysis> is the base file name of the master \R{} script, <type> is
-\code{est} for estimation runs, \code{sim} for simulation runs, \code{grid} for
-direct grid search runs,  and \# is a two-digit integers.
+where <myanalysis> is the string of character directly following the \$ANALYSIS 
+tag in the model file, <type> is \code{est} for estimation runs, \code{sim} for 
+simulation runs, \code{grid} for direct grid search runs,  and \# is a two-digit
+integer.
 
-At the exception of the .Rout file, all run output are stored in the newly 
+At the exception of the .Rout file, all run outputs are stored in the newly 
 created folder. Additionally, a subfolder called 'run.config.files' is created 
 to backup all original analysis files (\code{data.csv}, \code{initials.csv},
 \code{model.R}, and \code{myanalysis.R}).
@@ -908,8 +910,8 @@ graphs and report files. Instead, an informative message should be displayed.
 \paragraph{Simulation runs\\[3mm]}
 Upon successful completion of the run, you should be able to see (in
 interactive mode) as many figures as the number of subject-subproblem 
-combinations (see Section \ref{scope} for more details about the impact of the 
-scope of analysis on this number). Those overly figures represent the predicted
+combinations (see Section \ref{scope} for more details about how the scope of 
+analysis impacts this number). Those overlay figures represent the predicted
 changes in all selected outputs on top of the observed data. As stated above, 
 all figures are stored in the newly created folder.
 
@@ -923,17 +925,18 @@ scope of analysis on this file).
 \paragraph{Estimation runs\\[3mm]}
 Upon successful completion of the run, a figure summarizing the changes in the 
 objective function and the estimated parameter values as a function of the 
-iteration is created for each subject and stored in the newly created folder. A
-overlay figure of model predictions and observed data, and a figure showing 4 
-goodness-of-fit plots (predictions vs observations, weighted residuals vs time, 
-weighted residuals vs observations, weighted residuals vs predictions) for each 
-subproblem of each subject are also created and stored in the same folder (see 
-Section \ref{scope} for more details about the impact of the scope of analysis 
-on these plots). Starting on \scaRabee{} version 1.1-0, those figures are not 
-displayed on screen when the analysis is run in interactive mode.
+iteration number is created for each subject and stored in the newly created 
+folder. A overlay figure of model predictions and observed data, and a figure 
+showing 4 goodness-of-fit plots (predictions vs observations, weighted residuals 
+vs time, weighted residuals vs observations, weighted residuals vs predictions) 
+for each subproblem of each subject are also created and stored in the same 
+folder (see Section \ref{scope} for more details about the impact of the scope 
+of analysis on these plots). Starting on \scaRabee{} version 1.1-0, those 
+figures are not displayed on screen when the analysis is run in interactive 
+mode.
 
 A file called \code{<myanalysis>.report.txt} file is also saved in the same
-folder and provides, for each subject, in the analysis a summary of the estimation
+folder and provides, for each subject in the analysis, a summary of the estimation
 run, a summary table of final parameter estimates associated with precision
 statistics expressed as a coefficient of variation and a confidence intervals 
 (calculated as described in \cite{Dargenio.1997}), the matrices of covariance 
@@ -960,11 +963,11 @@ Direct grid search runs include two main steps: the actual grid search, followed
 by a simulation step that is based upon the combination of parameter values that 
 provided the lowest objective function value during the grid search. Direct grid 
 search runs coerce the scope of the analysis to the population, even though the 
-method variable in the master \scaRabee{} script is set to 'subject'. Therefore,
-the computation of the objective function during the grid search and the model
-predictions obtained during the simulation step are performed at the population
-level (see Section \ref{scope} for more details about the impact of the scope of
-analysis)
+\code{method} variable in the master \scaRabee{} script is set to 'subject'. 
+Therefore, the computation of the objective function during the grid search and 
+the model predictions obtained during the simulation step are performed at the 
+population level (see Section \ref{scope} for more details about the impact of 
+the scope of analysis)
 
 The progression of the grid search step is reported on the console in interactive 
 mode or in the log file in batch mode. Upon completion of this step, no graph is
@@ -972,9 +975,9 @@ created. Instead, a regular simulation run starts and results in the creation of
 the standard diagnostic plots mentionned above.
 
 The same files created by standard simulation runs are generated by a direct 
-grid serach run in the newly created folder. Furthermore, the results of the
+grid search run in the newly created folder. Furthermore, the results of the
 grid search are reported in a text file called \code{<myanalysis>.report.txt} 
-and also saved in the newly created folder.
+that is also saved in the newly created folder.
 
 \section{Scope of analysis}
   \label{scope}
@@ -989,7 +992,7 @@ estimation runs optimize the model parameter separately for each individual,
 starting at the same search point provided by the initial parameter estimates. 
 This corresponds to the standard two-stage approach, when the data file actually 
 contains data from multiple subjects (\emph{i.e.} multiple unique ID variable 
-values can be found in the data file), or to a na\"ive pooling approach, when
+values can be found in the data file), or to the na\"ive pooling approach, when
 the data file only contains data from a single individual (\emph{i.e.} the ID 
 variable is set to 1 for all records) \cite{Ette.2007}. Simulation runs 
 performed at the subject level evaluate the model for each subproblem/treatment 
@@ -1001,8 +1004,8 @@ When \code{method} is set to 'population', \scaRabee{} processes the content of
 the data file assuming that all observation records were obtained from a single
 individual. The dosing history is extracted from the dosing records with an ID 
 variable set to 1. In this case, estimation runs optimize the model parameter 
-on the global data, starting at the same search point provided by the initial 
-parameter estimates. This corresponds to a na\"ive pooling approach 
+on the global data, starting at the search point provided by the initial 
+parameter estimates. This corresponds to the na\"ive pooling approach 
 \cite{Ette.2007}. Simulation runs performed at the population level evaluate the
 model for all detected subproblems/treatments found in the dataset, using the 
 initial parameter estimates. Finally, all grid search runs are performed at the 
@@ -1042,28 +1045,29 @@ the system of differential equations to be performed by steps. When bolus inputs
 are detected in the data file, \scaRabee{} splits the global integration 
 interval into several continuous integration intervals based upon the dose event 
 times. The initial conditions of the system are updated for each integration 
-interval by adding the bolus amount (AMT) specified in the data file to the 
-value of the state (CMT) at the end of the previous interval (or the specified 
-initial conditions in the case of the first interval). Therefore, all model 
-predictions made at the time of a bolus assume that this bolus has entered the 
-system. Users are thus advised to set the time of pre-dose samples slightly 
+interval by adding the scaled bolus amount (AMT) specified in the data file to 
+the value of the state (CMT) at the end of the previous interval (or the 
+specified initial conditions in the case of the first interval). Therefore, all 
+model predictions made at the time of a bolus assume that this bolus has entered 
+the system. Users are thus advised to set the time of pre-dose samples slightly 
 before the time of the boluses, to ensure that those samples are handled as 
 pre-dose and not post-dose samples.
 
 The \code{dde} solver used for models defined with delay differential equations
 recognized discontinuous events as being part of the overall integration problem.
-Therefore, there is no need to split to global itegration interval. Discontinuous
-events are implemented via its \code{switchfunc} and \code{mapfunc} arguments,
-which are set to the \code{dde.switch} and \code{dde.map} functions within the
-context of \code{dde.model}. Briefly, discontinuous events are detected by 
-\code{dde.switch} and take place at times \code{t} where:
-\[
+Therefore, there is no need to split the global itegration interval. 
+Discontinuous events are implemented via its \code{switchfunc} and 
+\code{mapfunc} arguments, which are set to the \code{dde.switch} and 
+\code{dde.map} functions within the context of \code{dde.model}. Briefly, 
+discontinuous events are detected by \code{dde.switch} and take place at times 
+\code{t} where:
+\begin{displaymath}
   \left\{
     \begin{array}{l}
       dde.switch(t)=0\\
       \frac{\displaystyle \partial dde.switch}{\displaystyle \partial t}<0
     \end{array} \right.
-\]
+\end{displaymath}
 Bolus events are detected in the data file and implementing using a piecewise
 linear signal for the switch function. The \code{get.switch.vectors} function
 allows the creation of a "matrix" of signal values (1 or -1) symmetrically
@@ -1079,9 +1083,9 @@ those samples are handled as pre-dose and not post-dose samples.
 \paragraph{Infusion inputs\\[3mm]}
 The reduction from multiple data files to a single one introduced in the 
 version 1.1-0 of \scaRabee{} resulted in major modifications in the automated
-processing and assignement of in infusions to system states.
+processing and assignement of infusions to system states.
 
-Previous versions fo \scaRabee{} required infusions to be 'constructed' by
+Previous versions of \scaRabee{} required infusions to be 'constructed' by
 multiple records in a dosing-specific input files. Input rates were then linealy
 interpolated between two consecutive time points, allowing for an infusion rate
 to change over time. In version 1.1-0 of \scaRabee{}, infusions are documented
@@ -1128,7 +1132,7 @@ states (top graphs), as well as the accumulation of the drug in both states
 
 \subsection{Implementation of dosing history for model defined with algebraic
 equations}
-Dosing history cannot be automatically assigned a model defined with algebraic
+Dosing history cannot be automatically assigned to a model defined with algebraic
 equations. However, users can use dosing information in the \$OUTPUT block by 
 calling the \code{bolus} and \code{infusion} variable, which each contain the 
 TIME, CMT, AMT, RATE variable extracted from the \(d_{ij}\) dosing records 
@@ -1141,214 +1145,198 @@ pharmacokinetic model.
   
 As such, it might have occured to users familiar with NONMEM that the 
 implementation of models defined with algebraic equations in \scaRabee{} is not 
-too different from what NONMEM allows via to the \$PRED record.
+too different from what NONMEM allows via to the \$ERROR record.
 
 \section{Analysis examples}
-COMING SOON
-% 1 - naive pooling
-% 1.1 - simulation
-% 1.2 - simulation for input
-% 1.3 - estimation
-% 2 - population 
-% 2.1 - simulation
-% 2.2 - estimation
-% 3 - grid search
-%  \label{examples}
-%This section is designed to illustrate some selected features of \scaRabee{}. 
-%The seven examples below are available as demos using the following calls:
-%%
-%<<eval=FALSE>>=
-%demo(example1,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example2,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example3,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example4,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example5,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example6,package='scaRabee',echo=FALSE)
-%@
-%<<eval=FALSE>>=
-%demo(example7,package='scaRabee',echo=FALSE)
-%@
-%
-%Running these examples will create analysis folders in your working directory.
-%We recommend that you review their content after their creation.
-%
-%These examples are also intended for validation. The results of examples 1, 2
-%and 4 can be compared to the same analyses run with the ADAPT V software from
-%D'Argenio and Schumitzky (models \& outputs can be downloaded from
-%\url{http://code.google.com/p/pmlab/}). We refer the reader to the User's
-%manual of this software for any related question \cite{Dargenio.1997}.
-%
-%\subsection{Example 1}
-%The analysis proposed in example 1 is the simulation of a very simple
-%pharmacokinetic system: a single oral dose is modeled by a 1-compartment model
-%with non-delayed linear absorption and elimination. Dosing and dummy observation
-%data can be read from the \code{dosing.csv} and \code{data.csv} files. There is
-%no covariate in this system, so the \code{covariate.csv} file was left blank
-%(except for the column headers). The system parameter values used for the
-%simulation can be found in the \code{initials.csv} file.
-%
-%This model is implemented using a closed-form solution, i.e. the Bateman
-%function \cite{Gabrielsson.2007}. The noteworthy features of this model are how
-%the dose information is extracted from the dosing input variable on line 84, how
-%model parameters are directly used to compute the model predictions on line 87.
-%Note also that the \code{weighting.R} was not modified: the residual variability
-%model is not used during a simulation run, it is therefore unnecessary to define
-%it.
-%
-%The execution of the master \code{example.1.R} program should produce a single
-%graph output and a .csv report file. For comparison/validation purposes, the
-%analysis was repeated in ADAPT V. The results of this analysis are stored in the
-%adapt5\_example1 subfolder contained the downloaded archive. You are invited to
-%compare the results of the \scaRabee{} analysis to those obtained with ADAPT V
-%(\code{ex1.run} and \code{ex1.plt}). You should observe that the time versus
-%predicted concentrations curves are exactly superimposed, if plotted together.
-%
-%\subsection{Example 2}
-%The analysis proposed in example 2 is based on the same system as the one used
-%in example 1, except that an optimization of the system parameters is performed.
-%A proportional variability model is defined in \code{weighting.R}. The execution
-%of the master \code{example.2.R} program should produce 3 graph outputs, 2 .csv
-%files, and 1 .txt report.
-%
-%For comparison/validation purposes, the analysis was repeated in ADAPT V. The
-%results of this analysis are stored in the adapt5\_example2 subfolder contained
-%in the downloaded archive. You are invited to compare the results of the
-%\scaRabee{} analysis to those obtained with ADAPT V (\code{ex2.run} and
-%\code{ex2.plt}). You should observe that the parameter estimates and related
-%statistics are extremely close, showing minor differences in the optimization
-%algorithm between the two programs.
-%
-%To validate the method of computation of the covariance matrix(ces) and related
-%statistics (coefficient of variation, and confidence intervals) used in
-%\scaRabee{} (the same as in ADAPT V), we performed a second analysis in ADAPT V,
-%using the final estimates obtained in \scaRabee{} and setting the number of
-%estimation to 0. You are invited to compare the results of the \scaRabee{} 
-%analysis to those obtained with ADAPT V (\code{ex2scarabee.run}). You should
-%observe that the statistics of precision associated to all primary and secondary
-%parameters are identical.
-%
-%\subsection{Example 3}
-%The purpose of the example(s) 3 is to illustrate the automatic allocation of
-%inputs to system states in models specified with the ordinary differential
-%equations template. Three different dosing datasets are available in the
-%directory: \code{dosing1.csv}, \code{dosing2.csv}, and \code{dosing3.csv}. The
-%user is invited to execute the master \code{example.3.R} script several times,
-%after changing the dosing file at line 39.
-%
-%The model used in example(s) 3 is a system of 2 differential equations set to
-%zero at all times. Therefore, the accumulation of drug in the 2 states can be
-%easily visualized in the predictions versus time curves. Additionally, scale
-%factors were set to 1 and 2 for the first and second state to illustrate how
-%input scaling is performed in this template (at lines 194-195).
-%
-%\paragraph{dosing1.csv\\[3mm]}
-%In this example, five instantaneous boluses are assigned to the \(1^{st}\)
-%state at different time. The produced time versus predictions curves should look
-%like to following graphs:
-%\begin{figure}[h]
-%  \begin{center}
-%    \includegraphics{ex3_dosing1.png}
-%    \label{ex3.dosing1}
-%  \end{center}
-%\end{figure}
-%\paragraph{dosing2.csv\\[3mm]}
-%In this example, a \(1^{st}\) time-variant rate infusion followed by a
-%\(2^{nd}\) time-invariant rate infusion are assigned to the 1st state. The
-%produced time versus predictions curves should look like to following graphs:
-%\begin{figure}[h]
-%  \begin{center}
-%    \includegraphics{ex3_dosing2.png}
-%    \label{ex3.dosing2}
-%  \end{center}
-%\end{figure}
-%\paragraph{dosing3.csv\\[3mm]}
-%This example features several dosing complexities: infusion with time-variant
-%rate, simultaneous assignment of an instantaneous bolus and a time-invariant
-%rate infusion, and allocation of inputs to more than one state. The produced
-%time versus predictions curves should look like to following graphs:
-%\begin{figure}[h]
-%  \begin{center}
-%    \includegraphics{ex3_dosing3.png}
-%    \label{ex3.dosing3}
-%  \end{center}
-%\end{figure}
-%\subsection{Example 4}
-%The purpose of the example 4 is to illustrate the estimation of the parameters
-%of a non-linear model specified using ordinary differential equation, and to
-%show how \scaRabee{} decomposes a problem into several sub-problems defined by
-%the Dose ID variable in dosing.csv and data.csv.
-%You can see from the \code{dosing.csv} that three dosing regimens of
-%instantaneous boluses are defined with different doses administered at different
-%frequencies, but all are assigned to the \(1^{st}\) system state. The
-%\code{data.csv} shows that a rich sampling strategy was applied for the three
-%groups/dose regimens. There was no covariate in this system, so the
-%\code{covariate.csv} file was left blank (except for the column headers). The
-%system parameter values used for the simulation can be found in the
-%\code{initials.csv} file.
-%
-%The model used in example 4 is a 2-compartment model with linear and non-linear
-%elimination, and linear inter-compartmental distribution. The noteworthy
-%features of this model are: \begin{itemize}
-%  \item{the definition of the initial conditions using the model parameters on
-%    lines 160-161,}
-%  \item{the definition of the input scales on lines 194-195,}
-%  \item{the definition of intermediary variables using the model parameters on
-%    lines 233-235,}
-%  \item{the definition of the system of differential equations on lines 241-242,
-%    and}
-%  \item{the definition of the single model output at line 285.}
-%\end{itemize}
-%
-%The execution of the master \code{example.4.R} program should produce 7 graph
-%outputs (2 per sub-problems +1), 2 .csv files, and 1 .txt report.
-%
-%For comparison/validation purposes, the analysis was repeated in ADAPT V. The
-%results of this analysis are stored in the adapt5\_example4 subfolder contained
-%in the downloaded archive. You are invited to compare the results of the
-%\scaRabee{} analysis to those obtained with ADAPT V (\code{ex4.run} and
-%\code{ex4.plt}). Like in the example 2, the parameter estimates and related
-%statistics are close but not identical. \scaRabee{} actually estimates the
-%parameters with a better precision and provides estimates associated with a
-%higher likelihood of the data than in ADAPT 5. Again, this is due to small
-%differences in the optimization algorithms used in the two programs as well as
-%small differences in the differential equation solvers.
-%
-%\subsection{Example 5}
-%The analysis proposed in example 5 is the simulation of a system defined by
-%delay differential equations receiving 2 instantaneous boluses. The model was
-%defined based upon the delay differential equations template and consists in a
-%2-compartment model with linear elimination from the \(1^{st}\) compartment and
-%in which the return from the \(2^{nd}\) to the \(1^{st}\) compartment is
-%delayed. This model is defined with a single output, \emph{i.e.} the
-%concentration in the 1st compartment. Dosing and dummy observation data can be
-%read from the \code{dosing.csv} and \code{data.csv} files. There is no covariate
-%in this system, so the \code{covariate.csv} file was left blank (except for the
-%column headers). The system parameter values used for the simulation can be
-%found in the \code{initials.csv} file. The main interesting features of this
-%example are:
-%\begin{itemize}
-%  \item{the definition of the initial conditions using the model parameters on
-%    lines 130-131,}
-%  \item{the definition of input scales on lines 194-195,}
-%  \item{the definition if the unique model delay using the model parameters on
-%    line 200,}
-%  \item{how the states values at time t-delay is being used in the second
-%    differential equation at line 260, and}
-%  \item{the definition of the single model output at line 303.}
-%\end{itemize}
-%
-%The execution of the master \code{example.5.R} program should produce a single
-%graph output and a .csv report file.
+
+This section is designed to illustrate some selected features of \scaRabee{}. 
+Eight examples are available as demos using calls such as the following 
+(replacing \code{ex} by \code{example1} to \code{example8}):
+
+<<eval=FALSE>>=
+demo(ex,package='scaRabee',echo=FALSE)
+@
+
+Running these examples will create analysis folders in your working directory.
+We recommend that you review their content after their creation.
+
+\subsection{Example 1: Simulation of a model defined with algebraic equations at the 
+    population level}
+A simple PK/PD model defined with algebraic equatons is simulated at the 
+population in this example . The PK model describes the drug concentration 
+\(C_p\) using a one-compartment model with linear elimination after a single 2h 
+infusion. The response \(E\) is related to \(C_p\) by a direct effect Imax model:
+\begin{displaymath}
+\begin{array}{l}
+  C_p(t) = \frac{infusion \, rate}{CL} \cdot{} \bigg(
+     1-H(t-2) \cdot{} \Big(
+       1-e^{-\frac{CL}{V_c} \cdot{}(t-2)} 
+       \Big)
+     - e^{-\frac{CL}{V_c}\cdot{}t}
+     \bigg)\\ 
+   E(t)= E_0\cdot\Big(1-\frac{I_{max}\cdot{}C_p(t)}{IC_{50}+C_p(t)}\Big)
+\end{array}
+\end{displaymath}
+
+where \(H\) is the Heaviside function, \(CL\) the elimination clearance, \(V_c\) 
+the volume of distribution, \(E_0\) the baseline response, \(I_{max}\) the 
+maximum inhibition factor, and \(IC_{50}\) the half-inhibitory concentration.
+
+Note that because this is a simulation, there is no need for a \$VARIANCE block.
+
+\subsection{2: Simulation of inputs into a model defined with ordinary
+    differential equations}
+This example uses a model defined by a system of 2 ordinary differential 
+equations to illustrate how inputs are automatically assigned and scaled to 
+system states. Because both states have null initial conditions and gradients,
+the output of the model represents the cumulative scaled amount of drug assigned 
+to each state based upon the information provided in the dataset.
+
+\subsection{Example 3: Simulation of a model defined with ordinary differential 
+    equations at the population level}
+    
+\begin{center}
+  \includegraphics{tmdd.pdf} %[width=50mm,height=50mm]
+\end{center}
+
+A target-mediated disposition model for interferon-\(\beta\)1a pharmacokinetics
+in monkey was described by Mager and colleagues \cite{Mager.2003}. This model is 
+simulated at the population level in example 3 using the following system of 
+differential equations:
+\begin{displaymath}
+  \begin{array}{l l l}
+    & SC & IV\\
+    \frac{dA_D}{dt}=-k_a\cdot{}A_D & A_D(0)=F\cdot{}D_{SC} & A_D(0)=0\\
+    \frac{dA_L}{dt}=k_a\cdot{}A_D - k_{a2}\cdot{}A_L & A_L(0)=0 &
+      A_L(0)=0\\
+    \frac{dA_P}{dt}=k_{a2}\cdot{}A_L + k_{tp}\cdot{}A_T + k_{off}\cdot{}DR
+      - (k_{on}/V_c)\cdot{}A_{P}\cdot{}R - & A_{P}(0)=0 & A_{P}(0)=D_{IV}\\
+    \quad{} \quad{} (k_{pt}+k_{loss})\cdot{}A_P & & \\
+    \frac{dA_T}{dt}= k_{pt}\cdot{}A_P - k_{tp}\cdot{}A_T & A_{T}(0)=0 & 
+      A_{T}(0)=0\\
+    \frac{dDR}{dt}=(k_{on}/V_c)\cdot{}A_{P}\cdot{}R - (k_{off}+k_{int})\cdot{}DR 
+      & DR(0)=0 & DR(0)=0\\
+    R=R_{max}-DR & &\\
+  \end{array}
+\end{displaymath}
+
+where \(A_D\), \(A_L\), \(A_P\), and \(A_T\) are the amounts of drug in the 
+subcutaneous depot, lymph, central, and peripheral compartments and \(DR\) is 
+the concentration of drug-receptor complex. The noteworthy features of this 
+example are:
+\begin{itemize}
+  \item how dose information is extracted from the vector of covariate DOSE to 
+    define the scaling bioavailability factor \(F\) in the \$DERIVED block,
+  \item how the TRT variable is used in the dataset to define the different 
+    dosing regimens (3 different dose levels administered by single 
+    sub-cutaneous or intravenous dosing), and to avoid the duplication of the 
+    model equations, and
+  \item how the output of the system of differential equations is subset and
+    transformed to just extract the predicted concentration in the central
+    compartment in the \$OUTPUT block.
+\end{itemize}
+
+\subsection{Example 4: Simulation of a model defined with delay differential 
+    equations at the population level}
+This example features a 2-compartment model with linear inter-compartment
+distribution but with a delayed entry of the drug into the peripheral 
+compartment. The system can described by the following equations:
+\begin{displaymath}
+\begin{array}{l l}
+  \frac{dA_P}{dt}=-(k_e+k_{pt})\cdot{}A_P(t) + k_{tp}\cdot{}A_T(t) & A_P(0)=0\\
+  \frac{dA_T}{dt}= k_{pt}\cdot{}A_P(t-xyz) - k_{tp}\cdot{}A_T & A_T(0)=0
+\end{array}
+\end{displaymath}
+where \(A_P\) and \(A_T\) are the amounts of drug in the central and peripheral 
+compartments and \(xyz\) is the delay of entry into the peripheral compartment.
+
+This system is simulated at the population level assuming repeated bolus 
+administrations is the central compartment. The noteworthy features of this 
+example are:
+\begin{itemize}
+  \item how derived rate constants are computed in the \$DERIVED block using the
+    clearance and volume parameters defined in the parameter file,
+  \item how the delay \(xyz\) is directly available in the system of delay 
+    differential equations, because it was defined as a 'L' parameter in the 
+    parameter file, and
+  \item how a variance model is defined in the \$VARIANCE block but not used for 
+    the simulation (this could be useful, if the same model is then used in an
+    estimation analysis).
+\end{itemize}
+
+\subsection{Example 5: Estimation of a model defined with algebraic equations at 
+    the population level}
+This example estimates the parameters of the Example 1 model using the 
+observations provided in the Example 1 dataset and the na\"ive pooling approach. 
+The model file was however modified to include the variance models of the 
+concentrations and responses. Note that the concentrations were initially 
+log-transformed in the dataset to fit the original data with log residual 
+variability model. Consistently, the predicted \(C_P\) concentrations are 
+log-transformed before assigned as the first raw of \(y\).
+
+\subsection{Example 6: Simulation of a model defined with ordinary differential 
+    equations at the subject level}
+\begin{center}
+  \includegraphics[width=3.5in]{precursor.pdf}
+\end{center}
+In this example, a precursor turn-over model is simulated at the subject level. 
+The rate of transformation of the precursor \(P\) into response \(R\) is 
+inhibited by the drug concentration \(C_p\). The changes in drug concentration,
+precursor and response are described by the following equations:
+\begin{displaymath}
+\begin{array}{l l}
+  \frac{dC_P}{dt}=-k_e\cdot{}C_P(t) & C_P(0)=D/V_c\\
+  \frac{dP}{dt}= k_{in}-
+    k_t\cdot{}(1-\frac{I_{max}\cdot{}C_p}{IC_{50}+C_p})\cdot{}P & P(0)=R_0\\
+  \frac{dR}{dt}= k_t\cdot{}(1-\frac{I_{max}\cdot{}C_p}{IC_{50}+C_p})\cdot{}P -
+    k_{out}\cdot{}R & R(0)=R_0
+\end{array}
+\end{displaymath}
+
+\subsection{Example 7: Estimation of a model defined with algebraic equations at 
+    the subject level}
+WARNING: this example can be time consuming.
+
+This example estimates the parameters of the Example 1 model using the 
+observations provided in the Example 1 dataset and the standard two-stage 
+approach. The model file was however modified to include the variance models of 
+the concentrations and responses. Note that the concentrations were initially 
+log-transformed in the dataset to fit the original data with log residual 
+variability model. Consistently, the predicted \(C_P\) concentrations are 
+log-transformed before assigned as the first raw of \(y\).
+
+\subsection{Example 8: Direct grid search for a model defined with delay 
+    differential equations}
+WARNING: this example can be time consuming.
+
+This example illustrates how direct grid search can be performed using a 
+life-span model for paclitaxel (\(C_P\)) on leukocytes counts in cancer patient
+\cite{Krzyzanski.2002}.
+
+\begin{center}
+  \includegraphics{leuko.pdf}
+\end{center}
+
+Normalized leukocyte counts (\(R_\%\)) collected in one patient were
+digitized and a direct grid search run is performed to improve the estimates
+roughly chosen for the PD parameters (\(C_P\) is assumed to be accurately
+described by the parameter estimates obtained for a 3-compartment model). The
+paclitaxel effect is modeled with the following delay differential equation:
+\begin{displaymath}
+  \begin{matrix}
+  \frac{dR_\%}{dt}=k_{in\%} \cdot{} \Big( 
+    e^{-\int_{t-T_P-T_M}^{t-T_M} f\big(C_P(z)\big)dz}
+    - e^{-\int_{t-T_P-T_M-T_R}^{t-T_M-T_R} f\big(C_P(z)\big)dz}
+  \Big)\\
+  f\big(C_P\big)=\frac{K_{max} \cdot{} C_P}{KC_{50} + C_P}
+  \end{matrix}
+\end{displaymath}
+
+The grid is formed by combining 3 grid points per variable parameters (\(T_P\),
+\(T_M\), \(K_{max}\) and \(KC_{50}\)) and by setting the scaling factor to 2 for
+all parameters. \(T_R\) was fixed as described in \cite{Krzyzanski.2002}. The 
+best solutions found by direct grid search is finally compared to the reported 
+estimates.
 
 \cleardoublepage
 \section{References}
@@ -1361,14 +1349,14 @@ COMING SOON
 \section{Network of \scaRabee{} functions}
 \begin{figure}[h!]
   \begin{center}  
-  \includegraphics[angle=90,height=0.85\textheight]{scaRabee_network_1.png}
+  \includegraphics[trim=25mm 25mm 25mm 25mm,clip]{scaRabee_network_1.pdf}
     \caption{Map of the functions distributed with scaRabee (1/2)}
     \label{scaRabeemap}
   \end{center}
 \end{figure}
 \begin{figure}[h!]
   \begin{center}
-  \includegraphics[width=0.85\textwidth]{scaRabee_network_2.png}
+  \includegraphics[angle=-90, trim=25mm 25mm 25mm 90mm,clip]{scaRabee_network_2.pdf}
     \caption{Map of the functions distributed with scaRabee (2/2)}
     \label{scaRabeemap2}
   \end{center}

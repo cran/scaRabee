@@ -1,5 +1,11 @@
 require(scaRabee)
 
+if (.Platform$OS.type=="windows"){
+  end.of.folder <- ''
+} else {
+  end.of.folder <- '/'
+}
+
 # User-prompt: define target directory
 if (interactive()){
   cat('\nExample 1 - Simulation of a model defined with algebraic equations at the \n')
@@ -8,22 +14,25 @@ if (interactive()){
   repeat{
     wd <- readline('Enter a path to store the demo files:\n>')
     if (wd!=''){
+      if (substring(wd,nchar(wd),nchar(wd))!='/'){
+        wd <- paste(wd,end.of.folder,sep='')
+      }
       if (!file.exists(wd)){
         action <- readline(sprintf(paste('\nDirectory \'%s\' does not exist:\n',
-                                          '  [c] Continue with current working directory: %s\n',
-                                          '  [r] Retry\n',
-                                          '  [a] Abort\n>',sep=''),wd,getwd()))
+              '  [c] Continue with current working directory: %s\n',
+              '  [r] Retry\n',
+              '  [a] Abort\n>',sep=''),wd,getwd()))
         if (action == 'a') {
-          stop(call.=FALSE)
+          stop('Demo aborted',call.=FALSE)
         } else if (action == 'c') {
           wd <- getwd()
           if (substring(wd,nchar(wd),nchar(wd))!='/'){
-            wd <- paste(wd,'/',sep='')
+            wd <- paste(wd,end.of.folder,sep='')
           }
           options(warn=-1)
           nd <- try(file.create(paste(wd,'test.R',sep='')))
           options(warn=0)
-
+          
           if (nd) { # User has permission on directory
             file.remove(paste(wd,'test.R',sep=''))
             break
@@ -33,12 +42,12 @@ if (interactive()){
         
       } else {
         if (substring(wd,nchar(wd),nchar(wd))!='/'){
-          wd <- paste(wd,'/',sep='')
+          wd <- paste(wd,end.of.folder,sep='')
         }
         options(warn=-1)
         nd <- try(file.create(paste(wd,'test.R',sep='')))
         options(warn=0)
-
+        
         if (nd) { # User has permission on directory
           file.remove(paste(wd,'test.R',sep=''))
           break
@@ -47,21 +56,21 @@ if (interactive()){
       }
       
     } else {
-    
+      
       wd <- getwd()
       if (substring(wd,nchar(wd),nchar(wd))!='/'){
-        wd <- paste(wd,'/',sep='')
+        wd <- paste(wd,end.of.folder,sep='')
       }
       options(warn=-1)
       if (file.exists(wd))
         nd <- try(file.create(paste(wd,'test.R',sep='')))
       options(warn=0)
-
+      
       if (nd) { # User has permission on directory
         file.remove(paste(wd,'test.R',sep=''))
         break
       }
-
+      
       cat('\nYou don\'t have permissions on this directory.\n')
       
     }
@@ -72,28 +81,27 @@ if (interactive()){
 
 # Set files
 old.wd <- getwd()
-wd <- paste(wd,'example1/',sep='')
-ana.file <- paste(wd,'example1.R',sep='')
-data.file <- paste(wd,'data.csv',sep='')
-param.file <- paste(wd,'initials.csv',sep='')
-model.file <- paste(wd,'model.txt',sep='')
+wd <- paste(wd,'/example1/',sep='')
+ana.file <- 'example1.R'
+data.file <- 'data.csv'
+param.file <- 'initials.csv'
+model.file <- 'model.txt'
 
 # Copy files
 data(example1.data,
-     example1.initials)
+  example1.initials)
 
 # Create main and model.definition directory
 if (file.exists(wd)) {
   stop(sprintf(paste('\nDirectory \'%s\' already exists.\nDemo aborted. ',
-                     'Please retry using a different target directory.\n',sep=''),wd),
-       call.=FALSE)
+        'Please retry using a different target directory.\n',sep=''),wd),
+    call.=FALSE)
 }
 scarabee.new(name='example1',
-             path=wd,
-             type='simulation',
-             method='population',
-             template='explicit')
-setwd(wd)
+  path=wd,
+  type='simulation',
+  method='population',
+  template='explicit')
 
 # Update the data file
 write.table(example1.data,
@@ -113,7 +121,7 @@ write.table(example1.initials,
   append=TRUE)
 
 # Update the model file
-tmp <- c('$ANALYSIS example2',
+tmp <- c('$ANALYSIS example1',
   '',
   '$OUTPUT',
   '  ke <- cl/vc',

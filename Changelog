@@ -1,3 +1,8 @@
+2011-04-12 Sebastien Bihorel <sb.pmlab@gmail.com>
+  * Windows-specific bugs in demos have been corrected
+  
+  * Vignette updated to document the demos.
+  
 2011-03-31 Sebastien Bihorel <sb.pmlab@gmail.com>
   * scaRabee gets a major overhaul with version 1.1. Changes affect almost every
   provided functionalities. 

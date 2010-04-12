@@ -1,5 +1,11 @@
 require(scaRabee)
 
+if (.Platform$OS.type=="windows"){
+  end.of.folder <- ''
+} else {
+  end.of.folder <- '/'
+}
+
 # User-prompt: define target directory
 if (interactive()){
   cat('\nExample 6 - Simulation of a model defined with ordinary differential equations at the \n')
@@ -8,17 +14,20 @@ if (interactive()){
   repeat{
     wd <- readline('Enter a path to store the demo files:\n>')
     if (wd!=''){
+      if (substring(wd,nchar(wd),nchar(wd))!='/'){
+        wd <- paste(wd,end.of.folder,sep='')
+      }
       if (!file.exists(wd)){
         action <- readline(sprintf(paste('\nDirectory \'%s\' does not exist:\n',
               '  [c] Continue with current working directory: %s\n',
               '  [r] Retry\n',
               '  [a] Abort\n>',sep=''),wd,getwd()))
         if (action == 'a') {
-          stop(call.=FALSE)
+          stop('Demo aborted',call.=FALSE)
         } else if (action == 'c') {
           wd <- getwd()
           if (substring(wd,nchar(wd),nchar(wd))!='/'){
-            wd <- paste(wd,'/',sep='')
+            wd <- paste(wd,end.of.folder,sep='')
           }
           options(warn=-1)
           nd <- try(file.create(paste(wd,'test.R',sep='')))
@@ -33,7 +42,7 @@ if (interactive()){
         
       } else {
         if (substring(wd,nchar(wd),nchar(wd))!='/'){
-          wd <- paste(wd,'/',sep='')
+          wd <- paste(wd,end.of.folder,sep='')
         }
         options(warn=-1)
         nd <- try(file.create(paste(wd,'test.R',sep='')))
@@ -47,10 +56,10 @@ if (interactive()){
       }
       
     } else {
-          
+      
       wd <- getwd()
       if (substring(wd,nchar(wd),nchar(wd))!='/'){
-        wd <- paste(wd,'/',sep='')
+        wd <- paste(wd,end.of.folder,sep='')
       }
       options(warn=-1)
       if (file.exists(wd))
@@ -72,7 +81,7 @@ if (interactive()){
 
 # Set files
 old.wd <- getwd()
-wd <- paste(wd,'example6/',sep='')
+wd <- paste(wd,'/example6/',sep='')
 ana.file <- paste(wd,'example6.R',sep='')
 data.file <- paste(wd,'data.csv',sep='')
 param.file <- paste(wd,'initials.csv',sep='')
@@ -128,14 +137,14 @@ tmp <- c('$ANALYSIS example6',
   '  inh <- 1 - Imax*(a1/V)/(IC50+(a1/V))',
   '  dadt <- rbind(-ke*a1,                 # CP',
   '                kin-kt*inh*a2,          # P',
-  '                kt*inh*a2 - kout*a3)    # T',
+  '                kt*inh*a2 - kout*a3)    # R',
   '',
   '$OUTPUT',
   '  y <- rbind(f[1,]/V,',
   '             f[2,],',
   '             f[3,])'
-  )
-  
+)
+
 write(tmp,
   file=model.file,
   sep='\n',
