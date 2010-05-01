@@ -1,0 +1,1715 @@
+\documentclass[letterpaper,10pt,oneside]{article}
+
+%\VignetteIndexEntry{Introduction to scaRabee}
+%\VignettePackage{scaRabee}
+
+% Load packages
+\usepackage{Rd}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage{fontenc}
+\usepackage{amsmath}    % need for subequations
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}   % need for figures
+\usepackage{pstricks}
+\usepackage{verbatim}   % useful for program listings
+\usepackage{color}      % use if color is used in text
+\usepackage[pdfborder={0 0 0}]{hyperref}   % use for hypertext links, including
+                                           % those to external  documents and
+                                           % URLs
+
+% Page layout
+\oddsidemargin 0.5in \evensidemargin 0.5in \textwidth 6in
+
+% Defines some custom commands
+%\newcommand{\code}[1]{\texttt{#1}}
+%\newcommand{\pkg}[1]{\code{#1}}
+%\newcommand{\R}{\code{R}}
+\newcommand{\scaRabee}{\pkg{scaRabee}}
+\newcommand{\Matlab}{Matlab\textsuperscript{\textregistered}}
+%\newcommand{\email}[1]{\code{#1}}
+
+%\VignetteIndexEntry{User Manual for scaRabee}
+%\VignettePackage{scaRabee}
+
+\title{The scaRabee Package: An R-based Tool for Model Simulation and 
+  Optimization in Pharmacometrics}
+\author{Sébastien Bihorel}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{center}
+  \includegraphics[width=50mm,height=50mm]{scarabee_R.png} \\[25mm]
+\end{center}
+
+\begin{flushleft}
+Copyright\textsuperscript{\copyright} 2009, 2010 Sébastien Bihorel
+
+Permission is granted to copy, distribute and/or modify this document under the
+terms of the GNU Free Documentation License, Version 1.2 or any later version 
+published by the Free Software Foundation; with the Invariant Sections being the
+Front-Cover Texts being (a) (see below), and with the Back-Cover Texts being (b)
+(see below). A copy of the license is included in the section entitled “GNU Free
+Documentation License”.
+
+(a) The FSF’s Front-Cover Text is:
+
+A GNU Manual for \scaRabee{}
+
+(b) The FSF’s Back-Cover Text is:
+
+You have freedom to copy and modify this GNU Manual, like GNU software.
+
+\end{flushleft}
+\pagestyle{headings}
+
+% Table of contents
+\cleardoublepage
+\tableofcontents
+
+% Some Sweave preamble
+<<echo=false>>=
+options(width=70)
+@
+
+\cleardoublepage
+\section{Overview}
+\scaRabee{} is a toolkit for modeling and simulation primarily intended for the 
+field of pharmacometrics. It is a \R{} port \cite{Rcitation} of \pkg{Scarabee},
+a Matlab-based application developed for the simulation and optimization of
+pharmacokinetic and/or pharmacodynamic models specified with explicit solutions,
+ordinary or delay differential equations \cite{Bihorel.2009}.
+
+\subsection{Preliminary notice}
+This vignette constitutes a user manual for \scaRabee{}. This manual assumes 
+that the reader is familiar with the concepts of pharmacokinetic and 
+pharmacodynamic modeling and the underlying statistical theories. It is not the
+objective of this manual to explain and review those methods and theories. 
+Readers who are new to the field are invited to read the excellent introductory
+and more advanced books from Gabrielsson and Weiner \cite{Gabrielsson.2007},
+Bonate \cite{Bonate.2006} or Ette and Williams \cite{Ette.2007}.
+
+The systems analyzed in \scaRabee{} must be specified, for most parts, using the
+\R{} language and all analyses should be executed within the \R{} environment
+in interactive or batch mode. Presentations of the \R{} language are out of the
+scope of this manual.
+
+\subsection{How to obtain \scaRabee{}}
+\scaRabee{} is available at the Comprehensive R Archive Network and also at
+Pmlab (\url{http://code.google.com/p/pmlab/}), a repository for open-source
+software solutions in pharmacometrics. The most recent version of \scaRabee{}
+can be found in the Downloads section. \scaRabee{} is distributed under a GNU
+General Public License version 3. Please, review the term of this license
+before using this package. If this license was not distributed with your copy of
+\scaRabee{}, please visit the GNU Project website (\url{http://www.gnu.org/}).
+
+\subsection{Installation and dependencies}
+This package is available as source archive. You are invited to read Section
+6.3 Installing packages from the R Installation and Administration manual 
+\cite{Rinstall.2010} for more details on how to install a source package from a
+local .zip or .tar.gz file on your system. Model optimization in \scaRabee{} (as
+described in \ref{methodo}) relies on functions from the \pkg{neldermead},
+\pkg{optimsimplex}, and \pkg{optimbase} packages, which is also distributed from
+CRAN and Pmlab as compressed archives of the source packages.
+
+\subsection{Methodology}
+  \label{methodo}
+\scaRabee{} allows the optimization and simulation of non-linear systems at the 
+individual level and does not yet implement non-linear mixed effects modeling.
+The analysis of population data must therefore be performed through the naïve 
+averaging and naïve pooling methods \cite{Ette.2007}. Note that a standard
+two-stage approach is also possible but must be implemented manually.
+
+Model parameters are optimized by the method of the maximum likelihood, more
+precisely by the minimization of an objective function defined as minus twice 
+the exact likelihood of the observed data, given the model structure and a set 
+of parameter values. The minimization algorithm is based upon the Nelder-Mead 
+simplex method, as implemented by the \code{fminsearch} function from the 
+\pkg{neldermead} package. The computation of the data likelihood and the 
+covariance matrices of primary and secondary parameters is performed as 
+described in the Adapt II software user’s manual written by D’Argenio and 
+Schumitzky \cite{Dargenio.1997}.
+
+\scaRabee{} allows you to split your analysis problem into as many sub-problems
+as you need, while still using a unique model. This feature is especially
+useful when data obtained from several dose levels or regimens are fitted 
+simultaneously, because it avoids the duplication of explicit or differential 
+equations usually needed to accommodate the different dose levels or regimens.
+
+\subsection{Credits}
+\scaRabee{} was written by Sébastien Bihorel, alumni of the Paris 5 – René 
+Descartes University and of the State University of New York (SUNY) at Buffalo,
+upon suggestions and contributions from:
+\begin{itemize}
+  \item{Pawel Wiczling, alumni of SUNY at Buffalo, who shared codes at the basis
+    of the first \Matlab{} versions of the \code{fitmle} and \code{fitmle.cov}
+    functions,}
+  \item{John Harrold, Post-Doctoral Fellow at SUNY at Buffalo, who provided 
+    numerous advises during the creation of the \Matlab{} version of
+    \scaRabee{},}
+  \item{Sihem Ait-Oudhia, alumni of the Paris 5 – René Descartes University and 
+    of SUNY at Buffalo, for her suggestions and support.}
+\end{itemize}
+
+The \pkg{neldermead}, \pkg{optimsimplex}, and \pkg{optimbase} packages, used
+for parameter optimization in \scaRabee{}, are \R{} ports of the Scilab modules
+of the same names which were developed by Michael Baudin at INRIA (Institut
+National de Recherche en Informatique et en Automatique) and now at The Digitéo
+consortium. More information on Scilab can be found at \url{www.scilab.org}.
+
+\subsection{Reporting bugs}
+We welcome bug reports, questions and suggestions concerning any aspect of 
+\scaRabee{} function, documentation, installation, anything. Please email them 
+to \code{sb.pmlab@gmail.com}.
+
+For bug reports, please include enough information to allow the maintainers to 
+reproduce the problem. Generally speaking, that means:
+\begin{itemize}
+  \item{the version number of \scaRabee{} and the program(s) or manual
+    involved.}
+  \item{hardware and operating system names and versions.}
+  \item{the contents of any input, model, weighting or secondary parameter
+    files necessary to reproduce the bug.}
+  \item{a description of the problem and samples of any erroneous output.}
+  \item{any unusual options you gave to configure the problem.}
+  \item{anything else that you think would be helpful.}
+\end{itemize}
+
+Patches are also most welcome; if possible, please follow the existing coding 
+style, comment our faulty code and clearly marked your editions.
+
+\section{Getting started}
+All \scaRabee{} analyses are typically undertaken in analysis-specific folders
+and rely on the presence of given list of files in this working directory. A
+typical \scaRabee{} folder, as one created using the \code{scarabee.new} 
+function, contains at least the following files: \code{myanalysis.R},
+\code{data.csv}, \code{dosing.csv}, \code{initials.csv}, and
+\code{covariates.csv}, as well as the \code{model.definition} sub-folder. While
+these file and folder names correspond to the default names assumed by
+\code{scarabee.new}, they can be modified at the discretion of the user.
+However, these names will be used thereafter to refer to those particular files
+and folders, for the sake of simplicity. Finally, please note that you can add
+any file needed or not for your analysis in your analysis folder.
+
+\paragraph{myanalysis.R\\[3mm]}
+The master \R{} script that you need to execute to perform your analysis.
+Section \ref{editana} describes which parts of the code must be edited.
+\paragraph{data.csv\\[3mm]}
+A comma-separated table containing the times and values of observed data to be
+fitted or matched against a model simulation. Section \ref{editdata} describes
+how this data must be specified.
+\paragraph{dosing.csv\\[3mm]}
+A comma-separated table containing the inputs assigned to your model states –
+typically expressed as bolus doses or infusions in
+pharmacokinetic-pharmacodynamic
+models. Section \ref{editdosing} describes how these inputs must be specified.
+\paragraph{initials.csv\\[3mm]}
+A comma-separated table containing the names and values of your model
+parameters, used as initial guesses for model optimization, or as inputs for
+model simulation. Section \ref{editparam} describes how these parameters must be
+specified.
+\paragraph{covariates.csv\\[3mm]}
+A comma-separated table containing the times and values of the observed
+covariates to your model. Section \ref{editcov} describes how this data must be
+specified.
+\paragraph{model.definition\\[3mm]}
+A folder containing three \R{} scripts which define the structure of your model
+(\code{model.R}), the residual variability model (\code{weighting.R}) and
+potential secondary parameters (\code{secondary.R}). Sections \ref{editmod},
+\ref{editvar}, and \ref{editsec} describe how those files should be edited.
+
+The sections \ref{newfolder} through \ref{execana} offer a step-by-step
+description of the analysis process. 
+
+\subsection{Creation of a new analysis folder}
+  \label{newfolder}
+Although it is theoretically possible to store multiple analyses within the same
+directory, users are advised to create a new folder for each analysis. This
+folder can be located in any directory in your local system where you have
+read/write permissions. There are two ways to proceed depending at which point
+of a global analysis the folder is created. 
+
+\subsubsection{New analysis}
+If you start a brand new data analysis, it is recommended that you open an
+interactive \R{} session, change the working directory to the desired location
+using \code{setwd} and use \code{scarabee.new} to create a new folder
+that will contain \code{myanalysis.R}, \code{data.csv}, \code{dosing.csv},
+\code{initials.csv}, and \code{covariates.csv}, plus the \code{model.definition}
+sub-folder with \code{model.R}, \code{weighting.R} and \code{secondary.R}.
+
+It is recommended that you provide part or all arguments of \code{scarabee.new} 
+to better set up the new folder:
+\begin {description}
+  \item[name] controls the name of the new folder and is also used to 'rename'
+              \code{myanalysis.R}, 
+  \item[path] defines where the new folder is created (in case you do not want
+              to use the current working directory),
+  \item[type] defines whether the analysis is a simulation or an estimation run,
+  \item[template] controls which template will be used for \code{model.R};
+                  templates are available for models defined with closed form
+                  solution, ordinary differential equations or delay
+                  differential equations,
+  \item[with.inputs] defines whether or not instances of \code{data.csv},
+                     \code{dosing.csv}, \code{initials.csv} and
+                     \code{covariates.csv} should be created in the folder.
+\end{description}  
+<<eval=FALSE>>=
+require(scaRabee)
+setwd('your/target/directory/')
+scarabee.new(name='myanalysis',
+             path = getwd(),
+             type = 'simulation',
+             template = 'ode',
+             with.inputs = TRUE)
+@
+
+\subsubsection{New model in an on-going analysis}
+If you want to test an alternative to an exciting model or perform a different
+type of run, it is recommended that you create a new analysis folder. For this
+purporse, you can either use \code{scarabee.new} (with probably the
+\code{with.inputs} set to false) or copy/paste the existing folder to a
+different location. With the latter option, only minor edits to the problem
+files are needed.
+
+Regarless of the chosen method, part or all analysis files require some
+form of modifications that are described in section \ref{editdata} through
+\ref{editana}. Symbols and notation used in those sections are summarized in
+Table \ref{numtable}.
+
+\begin{table}[h]
+  \begin{tabular}{l p{5in} }
+    \hline
+    Symbol & Definition\\
+    \hline
+    \emph{p} & Number of parameters to be estimated\\
+    \emph{s} & Number of secondary parameters to be estimated\\
+    \emph{k} & Number of sub-problems\\
+    \emph{n} & Number of system states or outputs\\
+    \(n_{o}\) & Number of states with observations \\
+    \emph{l} & Number of delays evaluated for the solution of a
+      system of delayed differential equations\\
+    \( d_{i} \) & Number of dosing events in the \(i^{th}\) subproblem\\
+    \( m_{i} \) & Number of observation times in the \(i^{th}\) subproblem\\
+    \emph{c} & Number of covariates\\
+    \( t_{i} \) & Number of covariate observation times in the \(i^{th}\)
+      subproblem\\
+    \hline
+  \end{tabular}
+  \caption{Symbol Definition for Vector and Matrix Dimensions}
+  \label{numtable}
+\end{table}
+\subsection{Edition of data.csv}
+  \label{editdata}
+The \code{data.csv} file contains the data to be modeled or matched against a
+model simulation. This file is required in both estimation and simulation runs,
+and can be edited in any text editor or spreadsheet. All modified versions of
+this file must respect the comma-separated value format but can be saved under
+any user-defined name (the .csv extension is compulsory though). The content of
+\code{data.csv} must be a full rectangular table, with the following structure:
+\begin{itemize}
+\item{The first line must contain the headers of each column of your data
+table.}
+\item{The columns must be ordered as follows:
+  \begin{center} 
+  Dose ID, Time, Y(1), Y(2), \dots, Y(\(n_{o}\))\\ 
+  \end{center}
+  where Dose ID is the column of sub-problem identifiers (see below), Time is
+  the column of the observation times, Y(i) is the column of observations
+  associated to the \(i^{th}\) model output or state, and \(n_{o}\) is the
+  number of system outputs or states with observations.}
+\item{All lines should contain \(n_{o}\) elements separated
+  by commas. Dose ID and Time data cannot be missing, while the values in the
+  observation columns could be missing (\code{NA}).}
+\item{The Dose ID column must contain integer numbers, typically in
+  \textbf{increasing} order from 1 to \emph{k}, the total number of different
+  sub-problems  (typically dose levels or regimens) included in the analysis.
+  All records with a similar Dose ID will be considered as part of the same
+  sub-problem. It is  recommended that you enter all data from the same
+  sub-problem in continuous records.}
+\item{The Time column must contain real numbers in the \textbf{increasing}
+  order.  Failing to sort your data by Dose ID and Time is likely to cause
+  \scaRabee{} to return an error message or an erroneous output.}
+\item{Y(i) columns must contain real number or missing data indicators
+  (\code{NA}) corresponding to the observation values for a given model
+  output or state. A column could contain only missing data, although this is
+  not recommended.}
+\end{itemize}
+
+ALL \code{data.csv} FILES MUST CONTAIN AT LEAST A HEADER LINE AND TWO LINES PER
+SUB-PROBLEM, INDICATING THE BEGINNING AND THE END OF THE OBSERVATION INTERVALS.
+
+\subsection{Edition of dosing.csv}
+  \label{editdosing}
+The \code{dosing.csv} file contains the information about the inputs assigned to
+the analyzed system. In pharmacokinetics and pharmacodynamics, inputs are
+typically doses of study drug and are specified using instantaneous inputs
+(thereafter referred as boluses) or constant zero-order rate inputs (thereafter
+referred as infusions). The structure of dosing.csv respects this convention.
+This file is required in both estimation and simulation runs and can be edited
+in any text editor or spreadsheet. All modified versions of this file must 
+respect the comma-separated value format but can be saved under any user-defined
+name (the .csv extension is compulsory though). The content of \code{dosing.csv}
+must be a full rectangular table, with the following structure:
+\begin{itemize}
+\item{The first line must contain the headers of each column of your data
+table. This line is provided in the original \code{dosing.csv} and should
+typically not
+be modified.}
+\item{There must be 5 columns, ordered as follows:
+  \begin{center}
+   Dose ID, Time, State, Bolus, Infusion rate
+  \end{center}
+  where Dose ID is the column of sub-problem identifiers (see below), Time is
+  the column of the dosing times, State is the column indicating in which model
+  state (see below) the bolus or infusion enters the system, Bolus is the column
+  of dose amount entering the system as an instantaneous bolus, Infusion rate is
+  the column of zero-order rate at which the drug enters the system.}
+\item{All lines should contain 5 elements separated by commas. There cannot be
+  any missing data in this table: if a bolus or an infusion rate is null at a
+  given time, you should enter 0 in  the proper column.}
+\item{The Dose ID column must contain integer numbers, typically in
+  \textbf{increasing} order from 1 to \emph{k}, the total number of different
+  sub-problems  (typically dose levels or regimens) included in the analysis.
+  All records with a similar Dose ID will be considered as part of the same
+  sub-problem. It is  recommended that you enter all data from the same
+  sub-problem in continuous records. Note that the list of unique integers used
+  in \code{dosing.csv} must match the list of unique integers used in
+  \code{data.csv}.}
+\item{The Time column must contain real numbers in the \textbf{increasing}
+  order. Failing to sort your data by Dose ID and Time is likely to cause
+  \scaRabee{} to return an error message or an erroneous output.}
+\item{The State column must contain integer numbers indicating in which model
+  state the bolus or infusion should enter the system. This information can be
+  used or not, depending on how your model is defined (see \ref{editmod}).
+  In some of the available model templates, it is used as a reference
+  to automatically allocate the bolus and/or infusion to the appropriate state.
+  State can be understood in many ways but, in the context of a system defined
+  by ordinary of delayed differential equations, we identify a state to a given
+  differential equation. For instance, if you want that an input enters the
+  system via the 2nd differential equation at time 3.5 in the first sub-problem,
+  you will have to create a line with ‘1,3.5,2’ followed by the appropriate
+  bolus amount or infusion rate. See example 3 in Section \ref{examples} for a
+  better illustration of this concept.\\
+  State loses this meaning when a model is specified with explicit solutions,
+  but the information contained in this column could still be useful, if you
+  want to automate the allocation of the input to a specific variable/equation.}
+\item{The Bolus column must contain real numbers, representing the amount of
+  drug entering the system at a given time. More details about how this
+  information could be used in your model can be found in the description of
+  model templates in Section \ref{editmod}.}
+\item{The Infusion rate column must contain real numbers, representing the
+  zero-order rate at which the drug enters the system at a given time. You have
+  the ability to specify a non-zero bolus and an infusion rate at the same time.
+  However, both inputs will pertain to the same state. More details about how
+  this information could be used in your model can be found in the description
+  of model templates in Section \ref{editmod}.}
+\end{itemize}
+
+ALL \code{dosing.csv} FILES MUST CONTAIN AT LEAST CONTAIN A HEADER LINE.
+
+\subsection{Edition of initials.csv}
+  \label{editparam}
+The \code{initials.csv} file contains the information about your model
+parameters (Note that secondary parameters are defined in \code{secondary.R}).
+This file is required in both estimation and simulation runs, and can be edited
+in any text editor or spreadsheet. All modified versions of this file must
+respect the comma-separated values format but can be saved under any
+user-defined name (the .csv extension is compulsory though). The content of
+\code{initials.csv} must be a full rectangular table, with the following
+structure:
+\begin{itemize}
+\item{The first line must contain the headers of each column of your data
+  table. This line is provided in the original \code{initials.csv} and should
+  typically not be modified.}
+\item{There must be 6 columns, ordered as follows:
+  \begin{center}
+  Parameter, Type, Value, Fixed, Lower bound, Upper bound\\
+  \end{center} 
+  where Parameter, Type, and Value are the columns of parameter names, type and
+  value, Fixed is the column indicating whether a given parameter should be
+  estimated or fixed in an estimation analysis, and Lower bound and Upper bound
+  are the columns defining the range of values that a given parameter could
+  take.}
+\item{Each line must contain 6 elements separated by commas. There cannot be
+  any missing data in this table.}
+\item{The Parameter column can contain numbers or strings of characters,
+  representing the name of your model parameters (number will be handled as
+  strings of characters).}
+\item{The Type column must contain single characters, indicating the type of
+  each single parameter. There is four types of variables in Scarabee, so only
+  four authorized characters:\begin{description}
+  \item[P:] indicates that the parameter is a structural model parameter.
+  \item[L:] indicates that the parameter is a delay. This category exists for
+    the user convenience in the definition of model with delayed differential
+    equations, although an absorption lag-time can also be defined as a ‘L’
+    parameter.
+  \item[IC:] indicates that the parameter is used to define an initial
+    condition of a differential equation.
+  \item[V:] indicates that the parameter is used to specify the residual
+    variability model.
+  \end{description}}
+\item{The Value column must contain real numbers, representing the values
+  taken by the parameters.}
+\item{The Fixed column must contain either 0's or 1's, indicating whether a
+  parameter should be fixed (1) or estimated (0) during an estimation analysis.
+  This column has no impact on simulation runs.}
+\item{The Lower and Upper bounds must contain real numbers, representing the
+  range of values that parameters can take. The optimization algorithm
+  implemented in \scaRabee{} forces all estimated parameters to remain within
+  these defined ranges.}
+\end{itemize}
+
+ALL \code{initials.csv} FILES MUST CONTAIN AT LEAST A HEADER LINE AND ONE
+PARAMETER DEFINITION LINE.
+
+\subsection{Edition of covariates.csv}
+  \label{editcov}
+The \code{covariate.csv} file contains the observed covariate data that could be
+used or not to define a model. This file is required in both estimation and
+simulation runs, and can be edited in any text editor or spreadsheet. All
+modified versions of this file must respect the comma-separated values format
+but can be saved under any user-defined name (the .csv extension is compulsory
+though). The content of \code{covariate.csv} must be a full rectangular table,
+with the same following structure as \code{data.csv}:
+\begin{itemize}
+\item{The first line must contain the headers of each column of your data
+  table.}
+\item{The columns must be ordered as follows: 
+  \begin{center}
+  Dose ID, Time, COV(1),COV(2),\dots, COV(\emph{c})
+  \end{center}
+  where Dose ID is the column of sub-problem identifiers, Time is the column of
+  the observation times, COV(i) are the column of values taken by the
+  \(i^{th}\) covariate, and \emph{c} is the number of
+  differentes covariates.}
+\item{All lines should contain as many elements as the number of column
+  headers, separated by commas. Dose ID and Time data cannot be missing, while
+  the values in the covariate columns could be missing (\code{NA}) in one or
+  more columns.}
+\item{The Dose ID column must contain integer numbers, typically in
+  \textbf{increasing} order from 1 to \emph{k}, the total number of different
+  sub-problems  (typically dose levels or regimens) included in the analysis.
+  All records with a similar Dose ID will be considered as part of the same
+  sub-problem. It is  recommended that you enter all data from the same
+  sub-problem in continuous records. Note that the list of unique integers used
+  in \code{dosing.csv} must match the list of unique integers used in
+  \code{data.csv}.}
+\item{The Time column must contain real numbers in the \textbf{increasing}
+  order. Failing to sort your data by Dose ID and Time is likely to cause
+  \scaRabee{} to return an error message or an erroneous output.}
+\item{The COV(i) column must contain real number or the missing data
+  indicator (\code{NA}) corresponding to the values taken by the
+  \(i^{th}\) covariate. A column could contain only missing
+  data, but it is recommended to delete the column in such case. You can change
+  the header of each covariate data to your convenience.}
+\end{itemize}
+
+ALL \code{covariates.csv} FILES MUST AT LEAST CONTAIN A HEADER LINE.
+
+\subsection{Edition of model.R}
+  \label{editmod}
+The \code{model.R} file, found in the sub-folder model.definition, is a required
+\R{} script, in which you define the structure of the analyzed model. The
+purpose of this script is to output a matrix of predictions for each sub-problem
+of the analysis. The methods used to create this matrix are at your entire
+discretion, although we recommend that you use the template provided with
+\code{scarabee.new}. You can also rename this script if necessary. The structure
+of the input arguments and function output is described below.
+
+\paragraph{Arguments}
+\begin{description}
+  \item[x] a \emph{p} x 6 data.frame containing information about the model
+    parameters for the evaluation of the model. The columns \code{names},
+    \code{type}, \code{value}, \code{isfix}, \code{lb}, and \code{ub} contain
+    the names, the type, the value, the estimation status, and the lower and
+    upper bounds for the \emph{p} system parameters, respectively. The numbers
+    stored in \code{value} are the values defined in the \code{initials.csv}
+    file for a simulation run or the first iteration of an estimation run
+    (see Section \ref{editana}), or the values updated by the optimization
+    algorithm for any other iteration of an estimation run.
+  \item[dosing] a \(d_{i}\) x 4 matrix of dosing history.
+    Dosing event times, assignement states, bolus amounts and infusion rates are
+    stored in the \(1^{st}\), \(2^{nd}\), \(3^{rd}\), and \(4^{th}\) columns,
+    respectively. 
+  \item[xdata] a 1 x \(m_{i}\) matrix of observations times, where
+    \(m_{i}\geq2\)
+  \item[covdata] a \(t_{i}\) x \((c+1)\) matrix of covariate data. The
+    observation times are stored in the \(1^{st}\) column of \code{covdata},
+    while the actual values of each covariate are stored in the remaining
+    columnds in the order they appeared in \code{covariates.csv}.\\
+    Although this feature is not yet documented in this manual, the value of
+    covariates could be interpolated from \code{covdata} at times where those
+    metrics were not measured, using linear interpolation (see \code{?approx}).
+  \item[issim] a  scalar, indicating whether the model is evaluated in a 
+    simulation (1) or estimation (0) run.
+\end{description}
+
+\paragraph{Value\\[3mm]}
+For estimation runs, a \emph{n} x \(m_{i}\) matrix of model predictions;
+where \emph{n} is the number of model outputs and \(m_{i}\) the total number of
+observations times in the \(i^{th}\) sub-problem. For simulation runs, a
+\((n+1)\) x \(m_{i}\) matrix of prediction times and model predictions (the
+first row must contain the prediction times).
+
+You can specify the structure of the model using any available \R{} function in
+order to produce this output. The solvers for ordinary and delayed differential
+equations from the \pkg{deSolve} and \pkg{PBSddesolve} packages are especially
+useful. You should refer to the help of those packages for more information.
+Model templates provided by \code{scarabee.new} (see below) and specific
+application examples (see Section \ref{examples}) were created to guide you
+through the process of model creation in \scaRabee{}. Although you have the
+freedom to write your own code from start to finish, we recommend that you base
+your code on those templates, in order to minimize the risk of incompatibilities
+between your code and \scaRabee{} scripts.
+
+\subsubsection{Template for models specified with closed form solutions}
+  \label{explicit}
+This template can be accessed to from an existing script or by creating
+a new analysis folder with \code{scarabee.new} and setting the \code{template}
+argument to 'explicit':
+
+<<eval=FALSE>>=
+require(scaRabee)
+setwd('your/target/directory/')
+scarabee.new(name='myanalysis',
+             path = getwd(),
+             type = 'simulation',
+             template = 'explicit',
+             with.inputs = TRUE)
+@
+
+The section delimited by the \code{USER CODE STARTS HERE} and \code{USER CODE
+ENDS HERE} tags indicates the portion of the script where you can enter your own
+code. Within this section, you can make use of any function inputs (see Section
+\ref{editmod}) and directly access to model parameters using the names specified
+in \code{initials.csv} (see Section \ref{editparam}). Please, consider looking
+at examples 1 and 2 in Section \ref{examples} which illustrate the use of this
+template.
+
+\subsubsection{Template for models specified with ordinary differential
+equations}
+  \label{ode}
+This template can be accessed to from an existing script or by creating
+a new analysis folder with \code{scarabee.new} and setting the \code{template}
+argument to 'ode':
+
+<<eval=FALSE>>=
+require(scaRabee)
+setwd('your/target/directory/')
+scarabee.new(name='myanalysis',
+             path = getwd(),
+             type = 'simulation',
+             template = 'ode',
+             with.inputs = TRUE)
+@
+
+Provided that you do not alter the code outside the sections delimited by the
+\code{USER CODE STARTS HERE} and \code{USER CODE ENDS HERE} tags, bolus and
+infusion inputs are automatically allocated to the states defined in the
+\code{dosing.csv} file and scaled. Please, consider looking at examples 3 and 4
+in Section \ref{examples} which illustrate the use of this template.
+
+\paragraph{Bolus inputs\\[3mm]}
+Bolus inputs are allocated by splitting the global integration intervals into
+several continuous integration intervals based upon the dose event times. The
+initial conditions of the system are updated for each integration interval using
+the state values at the end of the previous interval (or the specified initial
+conditions in the case of the first interval) and the bolus amount and state
+specified in \code{dosing.csv}. Therefore, all model predictions made at the
+time of a bolus assume that this bolus has entered the system. Therefore, the
+user is advised to set the time of pre-dose samples slightly before the time of
+the boluses, to ensure that those samples are handled as pre-dose and not
+post-dose samples.
+
+\paragraph{Infusion inputs\\[3mm]}
+Infusion inputs are allocated into the system of differential equations as
+zero-order rate to the state defined in the \code{dosing.csv}. Given that
+infusion rates are defined within a time window in practice but at specific
+times in \code{dosing.csv}, a standard of interpretation of this file is
+necessary. Here is how the template code interprets the content of dosing.csv
+for the \(i^{th}\) sub-problem, assuming that \(t\) is the time at which the
+system of differential equations is evaluated:
+\begin{itemize}
+  \item{all dosing events are first split by state; then, for each state,}
+  \item{if \(t\) is lower than the first dose event, the rate is set to zero,}
+  \item{if \(t\) is higher than the last dose event, the rate is set to the
+    last values assigned to the state,}
+  \item{if \(t\) is exactly the time of one or more dose events, the rate is
+    set to the value specified at the last dose event at time \(t\),}
+  \item{if \(t\) is not a exact dose event time, the rate is linearly
+    interpolated between the closest rates specified before and after \(t\).}
+\end{itemize}
+
+The following example illustrates this set of rules. Let’s assume that the
+system is specified by two ordinary differential equations, both fixed to zero,
+and that the tabulated content of \code{dosing.csv} is as follows:
+
+\begin{center}
+  \begin{tabular}{c c c c c }
+    \hline
+    Dose ID & Time & State & Bolus & Infusion Rate\\
+    \hline
+    1 & 0  & 1 & 0 & 0\\
+    1 & 10 & 1 & 0 & 100\\
+    1 & 10 & 1 & 0 & 0\\
+    1 & 15 & 2 & 100 & 0\\
+    1 & 20 & 1 & 0 & 0\\
+    1 & 20 & 1 & 200 & 50\\
+    \hline
+  \end{tabular}
+\end{center}
+State 1 receives 1 bolus dose at time 20 and 2 infusions: the first, between 0
+and 10, has a rate increasing from 0 to 100, and a second, which is constant,
+starts at time 20 and does not stop. State 2 only receives a bolus dose at time
+15. The following graphs show the changes in the infusion rate entering both
+states (top graphs), as well as the accumulation of the drug in both states
+(bottom graphs).
+\begin{center}
+  \includegraphics{odeinputs.png} %[width=50mm,height=50mm]
+\end{center}
+
+\paragraph{Input scaling\\[3mm]}
+All bolus and infusion inputs can be scaled by the user (see how in the next
+section). This is particularly useful when the dimension of the inputs and the
+associated stated are different, which is the case when a dose of drug in mass
+(g) or amount (mol, IU) is assigned to a state modeled as a concentration (g/L,
+mol/L or IU/L).
+
+\paragraph{User-defined code\\[3mm]}
+  \label{test}
+New instances based on the 'ode' template should be edited at 4 different
+sections of the code. Each section is delimited by the \code{USER CODE STARTS
+HERE} and \code{USER CODE ENDS HERE} tags.
+\begin{itemize}
+  \item{Lines 174-182: this section is part of the \code{init} function which
+    defines the initial conditions of the system of differential equations.
+    These initial conditions are specified in the \code{init} variable which
+    must should be a vector of length \emph{n} (typically), where \emph{n} is
+    the number of states (i.e. differential equations). The first argument of
+    this function is \code{parms} which allows you to access to the model
+    parameters using the names specified in \code{initials.csv} (see Section
+    \ref{editparam}), including the ‘IC’ parameters.}
+  \item{Lines 209-221: this section is part of the \code{inputscaling} function,
+    which defines how bolus and infusion inputs are scaled. Scales are specified
+    in the \code{scale} variable which must be a scalar or have the same
+    dimension as \code{dydt}, the output of the \code{odesyst} function (see
+    below). In the latter case, the user should set \code{scale[i]} to 0 if
+    there is no input in the \(i^{th}\) state. The first argument of this
+    function is \code{parms} which allows you to access to the model parameters
+    using the names specified in \code{initials.csv} (see Section
+    \ref{editparam}).}
+  \item{Lines 263-274: this section is part of the \code{odesyst} function,
+    where the system of differential equations is specified. The system must
+    be defined in \code{dydt} which should be a vector of length \emph{n}. The
+    inputs to the \code{odesyst} function are:
+    \begin{itemize}
+      \item{\code{t}, a scalar representing the time at which the system is
+        being evaluated,}
+      \item{\code{y}, a vector of \emph{n} states values at time \code{t},}
+      \item{\code{parms},}
+      \item{\code{dosing},}
+      \item{\code{covdata}, and}
+      \item{\code{scale} (see above).}
+    \end{itemize}    
+    You can refer to model parameters using the names specified in
+    \code{initials.csv} (see Section \ref{editparam}). State values can be
+    refered to as \emph{e.g.} y1 or y2. Exogenous inputs (boluses and  
+    infusions) should NOT be added into the system of differential equations,
+    this is already being taken care of by the code.}
+  \item{Lines 316-324: this section is part of the \code{output} function, where
+    you define the structure of the output. The \code{y} variable is the output 
+    of the \code{output} and model functions, it must therefore be a \emph{n} x
+    \(m_{i}\) matrix. The inputs to the \code{output} function are \code{f}, a
+    \emph{n} x \(m_{i}\) matrix which gives the state predictions at all
+    observed times, \code{parms}, \code{dosing}, and \code{xdata}.\\
+    For a simulation analysis, you would typically want the complete system to
+    be output and would just specify \code{y <- f} at line 320.\\
+    For an estimation analysis, you must extract the desire states from the
+    \code{f} variable or construct a new variable based on \code{f} (e.g. if
+    one set of observations can be defined using a closed form solution) to
+    match the observations. For instance, if 3 sets of observations are
+    available and correspond to the \(1^{st}\), \(3^{rd}\), and \(4^{th}\)
+    state, you would write at line 320:\\
+    \code{y <- rbind(f[1,],f[3,],f[4,])}}
+\end{itemize}
+
+\subsubsection{Template for models specified with delayed differential
+equations}
+  \label{dde}
+This template can be accessed to from an existing script or by creating
+a new analysis folder with \code{scarabee.new} and setting the \code{template}
+argument to 'dde':
+
+<<eval=FALSE>>=
+require(scaRabee)
+setwd('your/target/directory/')
+scarabee.new(name='myanalysis',
+             path = getwd(),
+             type = 'simulation',
+             template = 'dde',
+             with.inputs = TRUE)
+@
+
+Provided that you do not alter the code outside the sections delimited by the
+\code{USER CODE STARTS HERE} and \code{USER CODE ENDS HERE} tags, bolus and
+infusion inputs are automatically allocated to the states defined in the
+\code{dosing.csv} file and scaled. Please, consider looking at example 5 in
+Section \ref{examples} which illustrates the use of this template.
+
+\paragraph{Bolus inputs\\[3mm]}
+Bolus inputs are considered as discontinuous events in the system as allowed
+by the \code{dde} function (see help of \pkg{PBSddesolve}) and are actually
+implemented with the \code{mySwitch} and \code{myMap} functions. Briefly,
+discontinuous events are detected by \code{mySwitch} and take place at times
+\code{t} where:
+\[ 
+  \left\{
+    \begin{array}{l}
+      mySwitch(t)=0\\
+      \frac{\displaystyle \partial mySwitch}{\displaystyle \partial t}<0
+    \end{array} \right.
+\]
+Bolus events are detected in the template by implementing a piecewise
+linear signal for the switch function. The \code{get.switch.vectors} function
+allows the creation of a "matrix" of signal values (1 or -1) symmetrically
+around the known bolus times. Then the \code{approx} function is used within
+\code{mySwitch} to interpolate the signal between those reference points: at
+bolus times, the interpolated signal is 0 and has a negative slope. The addition
+of amounts in system states is actually performed in \code{myMap}. Overall, all
+model predictions made at or extremelly close to the time of a bolus assume that
+this bolus has entered the system. The user is thus advised to set the time of
+pre-dose samples slightly before the time of the boluses, to ensure that those
+samples are handled as pre-dose and not post-dose samples.
+
+\paragraph{Infusion inputs\\[3mm]}
+Infusion inputs are allocated into the system of differential equations as
+zero-order rates to the states defined in the \code{dosing.csv}, using the same
+rules as defined in Section \ref{ode}.
+
+\paragraph{Input scaling\\[3mm]}
+All bolus and infusion inputs can be scaled by the user (see how in the next
+section).
+
+\paragraph{User-defined code\\[3mm]}
+New instances based on the 'dde' template should be edited at 5 different
+sections of the code. Each section is delimited by the \code{USER CODE STARTS
+HERE} and \code{USER CODE ENDS HERE} tags.
+\begin{itemize}
+  \item{Lines 145-153: this section is part of the \code{init} function which
+    defines the initial conditions of the system of differential equations.
+    These initial conditions are specified as described in \ref{test}.}
+  \item{Lines 180-191: this section is part of the \code{inputscaling} function,
+    which defines how bolus and infusion inputs are scaled. Scales are specified
+    in the \code{scale} variable which must be a scalar or have the same
+    dimension as \code{dydt}, the output of the \code{odesyst} function (see
+    below). In the latter case, the user should set \code{scale[i]} to 0 if
+    there is no input in the \(i^{th}\) state. The first argument of this
+    function is \code{parms} which allows you to access to the model parameters
+    using the names specified in \code{initials.csv} (see Section
+    \ref{editparam}).}
+  \item{Lines 222-231: this section is part of the \code{lags} function where
+    the delays used in system of differential equations are defined. The only
+    input variable of this function is \code{parms}, which allows you to access
+    to the model parameters using the names specified in \code{initials.csv}
+    (see Section \ref{editparam}), including the ‘L’ parameters. The
+    \code{delays} output of the \code{lags} function must be a vector of
+    \emph{l} elements.\\
+    Note that all elements of \code{delays} must have names, as illustrated
+    below:
+    \begin{center}
+      \code{delays <- c(lag1=1, lag2=2.5, lag3=myparam)}
+    \end{center}
+    }
+  \item{Lines 294-305: this section is part of the \code{ddesyst} function,
+    where the system of differential equations is specified. The system must
+    be defined in \code{dydt} which should be a vector of length \emph{n}. The
+    inputs to the \code{odesyst} function are:
+    \begin{itemize}
+      \item{\code{t}, a scalar representing the time at which the system is
+        being evaluated,}
+      \item{\code{y}, a vector of \emph{n} states values at time \code{t},}
+      \item{\code{parms}, a list containing the following elements:
+        \code{parms}, the vector of model parameters, \code{lags}, the vector
+        of delays, \code{dosing}, the matrix of dosing history, \code{xdata},
+        the vector of observation times, \code{covdata}, the matrix of
+        covariate observations, \code{scale}, the vector of input scale factors,
+        \code{times}, the vector of reference times for approximation function,
+        \code{signal}, the vector of reference signal for approximation
+        function, and \code{ic}, the vector of initial conditions}
+    \end{itemize}
+    You can refer to model parameters using the names specified in
+    \code{initials.csv} (see Section \ref{editparam}). State values at time
+    \code{t} can be referred to as \emph{e.g.} y1 or y2; the value of the
+    \(i^{th}\) state at time \code{t-lag3} (as defined above) can be referred to
+    as \code{ylag.lag3[i]}. Exogenous inputs (boluses and infusions) should NOT
+    be added into the system of differential equations, this is already being
+    taken care of by the code.}
+  \item{Lines 294-305: this section is part of the \code{output} function, where
+    you define the structure of the output. The \code{y} variable output
+    should be specified as explained in Section \ref{ode}.}
+\end{itemize}
+
+\subsection{Edition of weighting.R}
+  \label{editvar}
+The \code{weighting.R} file, found in the sub-folder model.definition, is a
+required \R{} script, in which you define the structure of the residual
+variability model. The purpose of the \code{weighting} function is to provide a
+matrix of values, defining the residual variability associated to each model
+prediction. Therefore, the \code{v} output must have the same dimensions as the
+output of the \code{model.R} file, \emph{i.e.} a \emph{n} x \(m_{i}\) matrix for
+each sub-problem of the analysis. The function inputs are:
+\begin{description}
+  \item[x] {the same list of data as the one passed to the \code{model}
+    function (see Section \ref{editmod}),}
+  \item[f] {a \emph{n} x \(m_{i}\) matrix containing the model predictions,}
+  \item[xdata] {the same 1 x \(m_{i}\) matrix of observation times, as the one
+    passed to the \code{model} function (see Section \ref{editmod}).}
+\end{description}
+\code{v[i,j]} must be the variance associated to the model prediction
+\code{f[i,j]}. The commented section at the top of the \code{weighting.R}
+template details the syntax that should be used for typical residual variability
+models (additive, proportional, additive + proportional). You can define
+\code{v} within a dedicated section between lines 37 and 58.
+
+\subsection{Edition of secondary.R}
+  \label{editsec}
+The \code{secondary.R} file, found in the sub-folder model.definition, is a
+required \R{} script, in which you can define how secondary parameters are
+calculated. If no secondary parameter is needed, the \code{secondary.R} could be
+left as provided by \code{scarabee.new}. The \code{sec} output is a vector of
+\emph{s} secondary parameters that must be specified between lines 41 and 54.
+The only input to the secondary function is x, the same list of data containing
+information about the model parameters, as the one passed to the model function
+\ref{editmod}.
+
+\subsection{Edition of myanalysis.R}
+  \label{editana}
+The \code{myanalysis.R} file is the master program that you must execute to
+perform your analysis. You must modify several lines in a specific section of
+the template (from line 20 to line 59) to define the particularities of your
+analysis. Any other line of this file should typically not be modified.
+Commented lines with the user-editable section explain what and how variable(s)
+should be defined.
+\begin{itemize}
+  \item{Lines 37-43: \code{data}, \code{param}, \code{dose}, \code{cov},
+    \code{model}, \code{var}, and \code{sec} variables are character variables
+    defining the names of the files where your data, parameters, dosing scheme,
+    covariates, model, residual variability, and secondary parameters are
+    respectively defined. The default values correspond to name of appropriate
+    files created by \code{scarabee.new}. You can change those names, if
+    necessary.}
+  \item{Line 46: the \code{states} variable is a vector of numeric values,
+    representing the indices of the model output corresponding to the various
+    observation columns in \code{data.csv}, and is only used for simulation runs
+    (see below).
+    
+    \emph{Example}: Let’s assume that the output of the \code{model.R} file is a
+    5 x 15 matrix, \emph{i.e.} a matrix of 15 predictions for 5 states, and that
+    \code{data.csv} contains 3 observation columns Y(1), Y(2), and Y(3), with 15
+    row each. If line 46 is defined as: 
+
+    \code{states <- c(2, 4, 5)}
+    
+    \scaRabee{} associates the data in Y(1) to the \(2^{th}\) row of the
+    prediction matrix, data in Y(2) to the \(4^{th}\) row of the prediction
+    matrix, and data in Y(3) to the \(5^{th}\) row of the prediction matrix.}
+  \item{Line 49: the \code{runtype} variable is a character variable, defining
+    if the analysis is an estimation or a simulation run. Any other character
+    string than 'simulation' or 'estimation' will cause an early termination of
+    the run and the display of an error message to the console.}
+  \item{Line 57: the optimization algorithm is designed to return an infinite
+    objective function in case the computation of the objective function at a
+    given point of the multi-dimensional search space returns an error message.
+    This is to prevent \R{} to stop the optimization process. Unfortunately,
+    this will also happen if an execution error occurs during the evaluation of
+    the model or the residual variability functions. The \code{debug} variable
+    allows you to shut down this feature, and identify potential syntax or
+    variable dimension problems in your model or residual variability files. The
+    \code{debug} variable is a logical that can only take TRUE or FALSE as
+    value.}
+  \item{Line 56-57: \code{estim} is a list a scalar variables \code{maxiter}
+    and \code{maxfunc}, defining the maximum number of iterations and function
+    evaluations during an estimation run. They can only contain integer numbers.
+    The default values are 500 and 5000, which should typically allow your
+    problem to converge to a stable point of the search space.}
+\end{itemize}
+
+\subsection{Execution of myanalysis.R}
+  \label{execana}
+Once all necessary files have been edited, the analysis can be performed by
+executing the master \code{myanalysis.R} script. This can be done in two ways:
+\begin{itemize}
+  \item{from an iteractive \R{} session: we recommend that you set the
+    working directory as the path to the analysis folder. Then, type
+    \begin{center}
+      \code{source('myanalysis.R')}.
+    \end{center}
+    You will be asked whether or not you want to change the working directory, 
+    press ENTER if this is not the case. At the end of the run, press ENTER
+    when prompted to display the different plots generated by \scaRabee{}.}
+  \item{from a shell or dos window: navigate to the directory containing the
+    \code{myanalysis.R} file of interest, then run the analysis by typing:
+    
+    \code{R CMD BATCH myanalysis.R}}
+\end{itemize}
+In both modes, \scaRabee{} creates a new folder in the working directory which
+name has the following structure:
+\begin{center}
+<myanalysis>.<type>.\#
+\end{center}
+where <myanalysis> is the base file name of the master \R{} script, <type> is
+\code{sim} for simulation runs and \code{est} for estimation runs, and \# is a
+two-digit integers.
+
+At the exception of the .Rout file in iteractive mode, all run output are
+stored in the newly created folder. Additionally, a sub-folder called
+'run.config.files' is created to backup all analysis files (\code{data.csv},
+\code{dosing.csv}, \code{initials.csv}, \code{covariates.csv}, \code{model.R},
+\code{secondary.R}, and \code{weighting.R}).
+
+In interactive mode, the run progression will be reported on screen, while it is
+stored to a log file in batch mode. Upon successful completion of the run, a
+termination message is reported and graphical outputs and ASCII text reports are
+produced. Most errors happening during the execution of the master
+\code{myanalysis.R} script should stop the run and prevent the creation or the
+finalization of the graphs and report files. Instead, an informative message
+should be displayed.
+
+\paragraph{Simulation runs\\[3mm]}
+Upon successful completion of your run, you should be able to see (in
+interactive mode) as many figures as the number of sub-problems specified in
+\code{data.csv} and \code{dosing.csv}. Those figures represent the predicted
+changes in all selected outputs overlaid with the observed data. As stated
+above, all figures are stored in the newly created folder.
+
+A file called \code{<myanalysis>.simulation.csv} file is also saved in the same
+folder. This file lists the values taken by the selected outputs at >1001 points
+within the studied time interval (typically from the minimum dose event or
+observation time to the maximum observation time), for each sub-problem.
+
+\paragraph{Estimation runs\\[3mm]}
+Upon successful completion of your run, you should be able to see (in
+interactive mode) a figure summarizing the changes in the objective function and
+the estimated parameter values as a function of the iteration, plus, for each
+sub-problem, a figure overlaying model predictions and observed data, and
+another figure showing 4 goodness-of-fit plots (predictions vs observations,
+weighted residuals vs time, weighted residuals vs observations, weighted
+residuals vs predictions). All figures are stored in the newly created folder.
+
+A file called \code{<myanalysis>.report.txt} file is also saved in the same
+folder and provides a summary of the estimation run, a summary table of final
+parameter estimates associated with coefficient of variation and confidence
+intervals (calculated as described in \cite{Dargenio.1997}), the matrices of
+covariance and correlation for primary parameters, plus a summary table of
+computed secondary parameters associated with coefficient of variation and
+confidence intervals (calculated as described in \cite{Dargenio.1997}).
+
+Moreover, a file called \code{<myanalysis>.iterations.csv} is saved in the
+folder and provides, in a tabulated format, the values of objective function and
+estimated parameters obtained at all iterations.
+
+Finally, a file called \code{<myanalysis>.predictions.csv} file is saved in the
+folder and provides the values of observations, predictions, residuals,
+variances, and weighted residuals for each non-missing observation time, stacked
+by sub-problem and model output.
+
+\section{Analysis examples}
+  \label{examples}
+This section is designed to illustrate some selected features of \scaRabee{} and
+show how the provided templates can be used to perform some pharmacokinetic
+analyses. The five examples described below are available as demos using the
+following calls:
+
+<<eval=FALSE>>=
+demo(example1,package='scaRabee',echo=FALSE)
+@
+<<eval=FALSE>>=
+demo(example2,package='scaRabee',echo=FALSE)
+@
+<<eval=FALSE>>=
+demo(example3,package='scaRabee',echo=FALSE)
+@
+<<eval=FALSE>>=
+demo(example4,package='scaRabee',echo=FALSE)
+@
+<<eval=FALSE>>=
+demo(example5,package='scaRabee',echo=FALSE)
+@
+
+Running these examples will create analysis folders in your working directory.
+We recommend that you review their content after their creation.
+
+These examples are also intended for validation. The results of examples 1, 2
+and 4 can be compared to the same analyses run with the ADAPT V software from
+D’Argenio and Schumitzky (models \& outputs can be downloaded from
+\url{http://code.google.com/p/pmlab/}). We refer the reader to the User’s
+manual of this software for any related question \cite{Dargenio.1997}.
+
+\subsection{Example 1}
+The analysis proposed in example 1 is the simulation of a very simple
+pharmacokinetic system: a single oral dose is modeled by a 1-compartment model
+with non-delayed linear absorption and elimination. Dosing and dummy observation
+data can be read from the \code{dosing.csv} and \code{data.csv} files. There is
+no covariate in this system, so the \code{covariate.csv} file was left blank
+(except for the column headers). The system parameter values used for the
+simulation can be found in the \code{initials.csv} file.
+
+This model is implemented using a closed-form solution, i.e. the Bateman
+function \cite{Gabrielsson.2007}. The noteworthy features of this model are how
+the dose information is extracted from the dosing input variable on line 84, how
+model parameters are directly used to compute the model predictions on line 87.
+Note also that the \code{weighting.R} was not modified: the residual variability
+model is not used during a simulation run, it is therefore unnecessary to define
+it.
+
+The execution of the master \code{example.1.R} program should produce a single
+graph output and a .csv report file. For comparison/validation purposes, the
+analysis was repeated in ADAPT V. The results of this analysis are stored in the
+adapt5\_example1 sub-folder contained the downloaded archive. You are invited to
+compare the results of the \scaRabee{} analysis to those obtained with ADAPT V
+(\code{ex1.run} and \code{ex1.plt}). You should observe that the time versus
+predicted concentrations curves are exactly superimposed, if plotted together.
+
+\subsection{Example 2}
+The analysis proposed in example 2 is based on the same system as the one used
+in example 1, except that an optimization of the system parameters is performed.
+A proportional variability model is defined in \code{weighting.R}. The execution
+of the master \code{example.2.R} program should produce 3 graph outputs, 2 .csv
+files, and 1 .txt report.
+
+For comparison/validation purposes, the analysis was repeated in ADAPT V. The
+results of this analysis are stored in the adapt5\_example2 sub-folder contained
+in the downloaded archive. You are invited to compare the results of the
+\scaRabee{} analysis to those obtained with ADAPT V (\code{ex2.run} and
+\code{ex2.plt}). You should observe that the parameter estimates and related
+statistics are extremely close, showing minor differences in the optimization
+algorithm between the two programs.
+
+To validate the method of computation of the covariance matrix(ces) and related
+statistics (coefficient of variation, and confidence intervals) used in
+\scaRabee{} (the same as in ADAPT V), we performed a second analysis in ADAPT V,
+using the final estimates obtained in \scaRabee{} and setting the number of
+estimation to 0. You are invited to compare the results of the \scaRabee{} 
+analysis to those obtained with ADAPT V (\code{ex2scarabee.run}). You should
+observe that the statistics of precision associated to all primary and secondary
+parameters are identical.
+
+\subsection{Example 3}
+The purpose of the example(s) 3 is to illustrate the automatic allocation of
+inputs to system states in models specified with the ordinary differential
+equations template. Three different dosing datasets are available in the
+directory: \code{dosing1.csv}, \code{dosing2.csv}, and \code{dosing3.csv}. The
+user is invited to execute the master \code{example.3.R} script several times,
+after changing the dosing file at line 39.
+
+The model used in example(s) 3 is a system of 2 differential equations set to
+zero at all times. Therefore, the accumulation of drug in the 2 states can be
+easily visualized in the predictions versus time curves. Additionally, scale
+factors were set to 1 and 2 for the first and second state to illustrate how
+input scaling is performed in this template (at lines 194-195).
+
+\paragraph{dosing1.csv\\[3mm]}
+In this example, five instantaneous boluses are assigned to the \(1^{st}\)
+state at different time. The produced time versus predictions curves should look
+like to following graphs:
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics{ex3_dosing1.png}
+    \label{ex3.dosing1}
+  \end{center}
+\end{figure}
+\paragraph{dosing2.csv\\[3mm]}
+In this example, a \(1^{st}\) time-variant rate infusion followed by a
+\(2^{nd}\) time-invariant rate infusion are assigned to the 1st state. The
+produced time versus predictions curves should look like to following graphs:
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics{ex3_dosing2.png}
+    \label{ex3.dosing2}
+  \end{center}
+\end{figure}
+\paragraph{dosing3.csv\\[3mm]}
+This example features several dosing complexities: infusion with time-variant
+rate, simultaneous assignment of an instantaneous bolus and a time-invariant
+rate infusion, and allocation of inputs to more than one state. The produced
+time versus predictions curves should look like to following graphs:
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics{ex3_dosing3.png}
+    \label{ex3.dosing3}
+  \end{center}
+\end{figure}
+\subsection{Example 4}
+The purpose of the example 4 is to illustrate the estimation of the parameters
+of a non-linear model specified using ordinary differential equation, and to
+show how \scaRabee{} decomposes a problem into several sub-problems defined by
+the Dose ID variable in dosing.csv and data.csv.
+You can see from the \code{dosing.csv} that three dosing regimens of
+instantaneous boluses are defined with different doses administered at different
+frequencies, but all are assigned to the \(1^{st}\) system state. The
+\code{data.csv} shows that a rich sampling strategy was applied for the three
+groups/dose regimens. There was no covariate in this system, so the
+\code{covariate.csv} file was left blank (except for the column headers). The
+system parameter values used for the simulation can be found in the
+\code{initials.csv} file.
+
+The model used in example 4 is a 2-compartment model with linear and non-linear
+elimination, and linear inter-compartmental distribution. The noteworthy
+features of this model are: \begin{itemize}
+  \item{the definition of the initial conditions using the model parameters on
+    lines 160-161,}
+  \item{the definition of the input scales on lines 194-195,}
+  \item{the definition of intermediary variables using the model parameters on
+    lines 233-235,}
+  \item{the definition of the system of differential equations on lines 241-242,
+    and}
+  \item{the definition of the single model output at line 285.}
+\end{itemize}
+
+The execution of the master \code{example.4.R} program should produce 7 graph
+outputs (2 per sub-problems +1), 2 .csv files, and 1 .txt report.
+
+For comparison/validation purposes, the analysis was repeated in ADAPT V. The
+results of this analysis are stored in the adapt5\_example4 sub-folder contained
+in the downloaded archive. You are invited to compare the results of the
+\scaRabee{} analysis to those obtained with ADAPT V (\code{ex4.run} and
+\code{ex4.plt}). Like in the example 2, the parameter estimates and related
+statistics are close but not identical. \scaRabee{} actually estimates the
+parameters with a better precision and provides estimates associated with a
+higher likelihood of the data than in ADAPT 5. Again, this is due to small
+differences in the optimization algorithms used in the two programs as well as
+small differences in the differential equation solvers.
+
+\subsection{Example 5}
+The analysis proposed in example 5 is the simulation of a system defined by
+delayed differential equations receiving 2 instantaneous boluses. The model was
+defined based upon the delayed differential equations template and consists in a
+2-compartment model with linear elimination from the \(1^{st}\) compartment and
+in which the return from the \(2^{nd}\) to the \(1^{st}\) compartment is
+delayed. This model is defined with a single output, \emph{i.e.} the
+concentration in the 1st compartment. Dosing and dummy observation data can be
+read from the \code{dosing.csv} and \code{data.csv} files. There is no covariate
+in this system, so the \code{covariate.csv} file was left blank (except for the
+column headers). The system parameter values used for the simulation can be
+found in the \code{initials.csv} file. The main interesting features of this
+example are:
+\begin{itemize}
+  \item{the definition of the initial conditions using the model parameters on
+    lines 130-131,}
+  \item{the definition of input scales on lines 194-195,}
+  \item{the definition if the unique model delay using the model parameters on
+    line 200,}
+  \item{how the states values at time t-delay is being used in the second
+    differential equation at line 260, and}
+  \item{the definition of the single model output at line 303.}
+\end{itemize}
+
+The execution of the master \code{example.5.R} program should produce a single
+graph output and a .csv report file.
+
+\cleardoublepage
+\section{References}
+% Bibliography
+\bibliographystyle{plain}
+\renewcommand*{\refname}{}
+\bibliography{scaRabee.bib}
+
+\cleardoublepage
+\section{Network of \scaRabee{} functions}
+\begin{figure}[h!]
+  \begin{center}  
+  \includegraphics[angle=90,height=0.85\textheight]{scaRabee_functions_map.png}
+    \caption{Map of the functions distributed with scaRabee}
+    \label{scaRabeemap}
+  \end{center}
+\end{figure}
+
+\cleardoublepage
+\section{Help on \scaRabee{} functions}
+\input{scaRabee-package}
+\input{bound.parameters}
+\input{compute.secondary}
+\input{create.intervals}
+\input{estimation.plot}
+\input{finalize.report}
+\input{find.id}
+\input{fitmle.cov}
+\input{fitmle}
+\input{get.cov.matrix}
+\input{get.layout}
+\input{get.param.data}
+\input{get.secondary}
+\input{init.report}
+\input{order.param.list}
+\input{pder}
+\input{problem.eval}
+\input{residual.report}
+\input{scarabee.analysis}
+\input{scarabee.clean}
+\input{scarabee.directory}
+\input{scarabee.new}
+\input{simulation.plot}
+\input{simulation.report}
+\input{weighting.additive}
+
+\cleardoublepage
+\section{GNU Free Documentation License}
+\begin{verbatim}
+
+                GNU Free Documentation License
+                 Version 1.3, 3 November 2008
+
+
+ Copyright (C) 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     <http://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+0. PREAMBLE
+
+The purpose of this License is to make a manual, textbook, or other
+functional and useful document "free" in the sense of freedom: to
+assure everyone the effective freedom to copy and redistribute it,
+with or without modifying it, either commercially or noncommercially.
+Secondarily, this License preserves for the author and publisher a way
+to get credit for their work, while not being considered responsible
+for modifications made by others.
+
+This License is a kind of "copyleft", which means that derivative
+works of the document must themselves be free in the same sense.  It
+complements the GNU General Public License, which is a copyleft
+license designed for free software.
+
+We have designed this License in order to use it for manuals for free
+software, because free software needs free documentation: a free
+program should come with manuals providing the same freedoms that the
+software does.  But this License is not limited to software manuals;
+it can be used for any textual work, regardless of subject matter or
+whether it is published as a printed book.  We recommend this License
+principally for works whose purpose is instruction or reference.
+
+
+1. APPLICABILITY AND DEFINITIONS
+
+This License applies to any manual or other work, in any medium, that
+contains a notice placed by the copyright holder saying it can be
+distributed under the terms of this License.  Such a notice grants a
+world-wide, royalty-free license, unlimited in duration, to use that
+work under the conditions stated herein.  The "Document", below,
+refers to any such manual or work.  Any member of the public is a
+licensee, and is addressed as "you".  You accept the license if you
+copy, modify or distribute the work in a way requiring permission
+under copyright law.
+
+A "Modified Version" of the Document means any work containing the
+Document or a portion of it, either copied verbatim, or with
+modifications and/or translated into another language.
+
+A "Secondary Section" is a named appendix or a front-matter section of
+the Document that deals exclusively with the relationship of the
+publishers or authors of the Document to the Document's overall
+subject (or to related matters) and contains nothing that could fall
+directly within that overall subject.  (Thus, if the Document is in
+part a textbook of mathematics, a Secondary Section may not explain
+any mathematics.)  The relationship could be a matter of historical
+connection with the subject or with related matters, or of legal,
+commercial, philosophical, ethical or political position regarding
+them.
+
+The "Invariant Sections" are certain Secondary Sections whose titles
+are designated, as being those of Invariant Sections, in the notice
+that says that the Document is released under this License.  If a
+section does not fit the above definition of Secondary then it is not
+allowed to be designated as Invariant.  The Document may contain zero
+Invariant Sections.  If the Document does not identify any Invariant
+Sections then there are none.
+
+The "Cover Texts" are certain short passages of text that are listed,
+as Front-Cover Texts or Back-Cover Texts, in the notice that says that
+the Document is released under this License.  A Front-Cover Text may
+be at most 5 words, and a Back-Cover Text may be at most 25 words.
+
+A "Transparent" copy of the Document means a machine-readable copy,
+represented in a format whose specification is available to the
+general public, that is suitable for revising the document
+straightforwardly with generic text editors or (for images composed of
+pixels) generic paint programs or (for drawings) some widely available
+drawing editor, and that is suitable for input to text formatters or
+for automatic translation to a variety of formats suitable for input
+to text formatters.  A copy made in an otherwise Transparent file
+format whose markup, or absence of markup, has been arranged to thwart
+or discourage subsequent modification by readers is not Transparent.
+An image format is not Transparent if used for any substantial amount
+of text.  A copy that is not "Transparent" is called "Opaque".
+
+Examples of suitable formats for Transparent copies include plain
+ASCII without markup, Texinfo input format, LaTeX input format, SGML
+or XML using a publicly available DTD, and standard-conforming simple
+HTML, PostScript or PDF designed for human modification.  Examples of
+transparent image formats include PNG, XCF and JPG.  Opaque formats
+include proprietary formats that can be read and edited only by
+proprietary word processors, SGML or XML for which the DTD and/or
+processing tools are not generally available, and the
+machine-generated HTML, PostScript or PDF produced by some word
+processors for output purposes only.
+
+The "Title Page" means, for a printed book, the title page itself,
+plus such following pages as are needed to hold, legibly, the material
+this License requires to appear in the title page.  For works in
+formats which do not have any title page as such, "Title Page" means
+the text near the most prominent appearance of the work's title,
+preceding the beginning of the body of the text.
+
+The "publisher" means any person or entity that distributes copies of
+the Document to the public.
+
+A section "Entitled XYZ" means a named subunit of the Document whose
+title either is precisely XYZ or contains XYZ in parentheses following
+text that translates XYZ in another language.  (Here XYZ stands for a
+specific section name mentioned below, such as "Acknowledgements",
+"Dedications", "Endorsements", or "History".)  To "Preserve the Title"
+of such a section when you modify the Document means that it remains a
+section "Entitled XYZ" according to this definition.
+
+The Document may include Warranty Disclaimers next to the notice which
+states that this License applies to the Document.  These Warranty
+Disclaimers are considered to be included by reference in this
+License, but only as regards disclaiming warranties: any other
+implication that these Warranty Disclaimers may have is void and has
+no effect on the meaning of this License.
+
+2. VERBATIM COPYING
+
+You may copy and distribute the Document in any medium, either
+commercially or noncommercially, provided that this License, the
+copyright notices, and the license notice saying this License applies
+to the Document are reproduced in all copies, and that you add no
+other conditions whatsoever to those of this License.  You may not use
+technical measures to obstruct or control the reading or further
+copying of the copies you make or distribute.  However, you may accept
+compensation in exchange for copies.  If you distribute a large enough
+number of copies you must also follow the conditions in section 3.
+
+You may also lend copies, under the same conditions stated above, and
+you may publicly display copies.
+
+
+3. COPYING IN QUANTITY
+
+If you publish printed copies (or copies in media that commonly have
+printed covers) of the Document, numbering more than 100, and the
+Document's license notice requires Cover Texts, you must enclose the
+copies in covers that carry, clearly and legibly, all these Cover
+Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
+the back cover.  Both covers must also clearly and legibly identify
+you as the publisher of these copies.  The front cover must present
+the full title with all words of the title equally prominent and
+visible.  You may add other material on the covers in addition.
+Copying with changes limited to the covers, as long as they preserve
+the title of the Document and satisfy these conditions, can be treated
+as verbatim copying in other respects.
+
+If the required texts for either cover are too voluminous to fit
+legibly, you should put the first ones listed (as many as fit
+reasonably) on the actual cover, and continue the rest onto adjacent
+pages.
+
+If you publish or distribute Opaque copies of the Document numbering
+more than 100, you must either include a machine-readable Transparent
+copy along with each Opaque copy, or state in or with each Opaque copy
+a computer-network location from which the general network-using
+public has access to download using public-standard network protocols
+a complete Transparent copy of the Document, free of added material.
+If you use the latter option, you must take reasonably prudent steps,
+when you begin distribution of Opaque copies in quantity, to ensure
+that this Transparent copy will remain thus accessible at the stated
+location until at least one year after the last time you distribute an
+Opaque copy (directly or through your agents or retailers) of that
+edition to the public.
+
+It is requested, but not required, that you contact the authors of the
+Document well before redistributing any large number of copies, to
+give them a chance to provide you with an updated version of the
+Document.
+
+
+4. MODIFICATIONS
+
+You may copy and distribute a Modified Version of the Document under
+the conditions of sections 2 and 3 above, provided that you release
+the Modified Version under precisely this License, with the Modified
+Version filling the role of the Document, thus licensing distribution
+and modification of the Modified Version to whoever possesses a copy
+of it.  In addition, you must do these things in the Modified Version:
+
+A. Use in the Title Page (and on the covers, if any) a title distinct
+   from that of the Document, and from those of previous versions
+   (which should, if there were any, be listed in the History section
+   of the Document).  You may use the same title as a previous version
+   if the original publisher of that version gives permission.
+B. List on the Title Page, as authors, one or more persons or entities
+   responsible for authorship of the modifications in the Modified
+   Version, together with at least five of the principal authors of the
+   Document (all of its principal authors, if it has fewer than five),
+   unless they release you from this requirement.
+C. State on the Title page the name of the publisher of the
+   Modified Version, as the publisher.
+D. Preserve all the copyright notices of the Document.
+E. Add an appropriate copyright notice for your modifications
+   adjacent to the other copyright notices.
+F. Include, immediately after the copyright notices, a license notice
+   giving the public permission to use the Modified Version under the
+   terms of this License, in the form shown in the Addendum below.
+G. Preserve in that license notice the full lists of Invariant Sections
+   and required Cover Texts given in the Document's license notice.
+H. Include an unaltered copy of this License.
+I. Preserve the section Entitled "History", Preserve its Title, and add
+   to it an item stating at least the title, year, new authors, and
+   publisher of the Modified Version as given on the Title Page.  If
+   there is no section Entitled "History" in the Document, create one
+   stating the title, year, authors, and publisher of the Document as
+   given on its Title Page, then add an item describing the Modified
+   Version as stated in the previous sentence.
+J. Preserve the network location, if any, given in the Document for
+   public access to a Transparent copy of the Document, and likewise
+   the network locations given in the Document for previous versions
+   it was based on.  These may be placed in the "History" section.
+   You may omit a network location for a work that was published at
+   least four years before the Document itself, or if the original
+   publisher of the version it refers to gives permission.
+K. For any section Entitled "Acknowledgements" or "Dedications",
+   Preserve the Title of the section, and preserve in the section all
+   the substance and tone of each of the contributor acknowledgements
+   and/or dedications given therein.
+L. Preserve all the Invariant Sections of the Document,
+   unaltered in their text and in their titles.  Section numbers
+   or the equivalent are not considered part of the section titles.
+M. Delete any section Entitled "Endorsements".  Such a section
+   may not be included in the Modified Version.
+N. Do not retitle any existing section to be Entitled "Endorsements"
+   or to conflict in title with any Invariant Section.
+O. Preserve any Warranty Disclaimers.
+
+If the Modified Version includes new front-matter sections or
+appendices that qualify as Secondary Sections and contain no material
+copied from the Document, you may at your option designate some or all
+of these sections as invariant.  To do this, add their titles to the
+list of Invariant Sections in the Modified Version's license notice.
+These titles must be distinct from any other section titles.
+
+You may add a section Entitled "Endorsements", provided it contains
+nothing but endorsements of your Modified Version by various
+parties--for example, statements of peer review or that the text has
+been approved by an organization as the authoritative definition of a
+standard.
+
+You may add a passage of up to five words as a Front-Cover Text, and a
+passage of up to 25 words as a Back-Cover Text, to the end of the list
+of Cover Texts in the Modified Version.  Only one passage of
+Front-Cover Text and one of Back-Cover Text may be added by (or
+through arrangements made by) any one entity.  If the Document already
+includes a cover text for the same cover, previously added by you or
+by arrangement made by the same entity you are acting on behalf of,
+you may not add another; but you may replace the old one, on explicit
+permission from the previous publisher that added the old one.
+
+The author(s) and publisher(s) of the Document do not by this License
+give permission to use their names for publicity for or to assert or
+imply endorsement of any Modified Version.
+
+
+5. COMBINING DOCUMENTS
+
+You may combine the Document with other documents released under this
+License, under the terms defined in section 4 above for modified
+versions, provided that you include in the combination all of the
+Invariant Sections of all of the original documents, unmodified, and
+list them all as Invariant Sections of your combined work in its
+license notice, and that you preserve all their Warranty Disclaimers.
+
+The combined work need only contain one copy of this License, and
+multiple identical Invariant Sections may be replaced with a single
+copy.  If there are multiple Invariant Sections with the same name but
+different contents, make the title of each such section unique by
+adding at the end of it, in parentheses, the name of the original
+author or publisher of that section if known, or else a unique number.
+Make the same adjustment to the section titles in the list of
+Invariant Sections in the license notice of the combined work.
+
+In the combination, you must combine any sections Entitled "History"
+in the various original documents, forming one section Entitled
+"History"; likewise combine any sections Entitled "Acknowledgements",
+and any sections Entitled "Dedications".  You must delete all sections
+Entitled "Endorsements".
+
+
+6. COLLECTIONS OF DOCUMENTS
+
+You may make a collection consisting of the Document and other
+documents released under this License, and replace the individual
+copies of this License in the various documents with a single copy
+that is included in the collection, provided that you follow the rules
+of this License for verbatim copying of each of the documents in all
+other respects.
+
+You may extract a single document from such a collection, and
+distribute it individually under this License, provided you insert a
+copy of this License into the extracted document, and follow this
+License in all other respects regarding verbatim copying of that
+document.
+
+
+7. AGGREGATION WITH INDEPENDENT WORKS
+
+A compilation of the Document or its derivatives with other separate
+and independent documents or works, in or on a volume of a storage or
+distribution medium, is called an "aggregate" if the copyright
+resulting from the compilation is not used to limit the legal rights
+of the compilation's users beyond what the individual works permit.
+When the Document is included in an aggregate, this License does not
+apply to the other works in the aggregate which are not themselves
+derivative works of the Document.
+
+If the Cover Text requirement of section 3 is applicable to these
+copies of the Document, then if the Document is less than one half of
+the entire aggregate, the Document's Cover Texts may be placed on
+covers that bracket the Document within the aggregate, or the
+electronic equivalent of covers if the Document is in electronic form.
+Otherwise they must appear on printed covers that bracket the whole
+aggregate.
+
+
+8. TRANSLATION
+
+Translation is considered a kind of modification, so you may
+distribute translations of the Document under the terms of section 4.
+Replacing Invariant Sections with translations requires special
+permission from their copyright holders, but you may include
+translations of some or all Invariant Sections in addition to the
+original versions of these Invariant Sections.  You may include a
+translation of this License, and all the license notices in the
+Document, and any Warranty Disclaimers, provided that you also include
+the original English version of this License and the original versions
+of those notices and disclaimers.  In case of a disagreement between
+the translation and the original version of this License or a notice
+or disclaimer, the original version will prevail.
+
+If a section in the Document is Entitled "Acknowledgements",
+"Dedications", or "History", the requirement (section 4) to Preserve
+its Title (section 1) will typically require changing the actual
+title.
+
+
+9. TERMINATION
+
+You may not copy, modify, sublicense, or distribute the Document
+except as expressly provided under this License.  Any attempt
+otherwise to copy, modify, sublicense, or distribute it is void, and
+will automatically terminate your rights under this License.
+
+However, if you cease all violation of this License, then your license
+from a particular copyright holder is reinstated (a) provisionally,
+unless and until the copyright holder explicitly and finally
+terminates your license, and (b) permanently, if the copyright holder
+fails to notify you of the violation by some reasonable means prior to
+60 days after the cessation.
+
+Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, receipt of a copy of some or all of the same material does
+not give you any rights to use it.
+
+
+10. FUTURE REVISIONS OF THIS LICENSE
+
+The Free Software Foundation may publish new, revised versions of the
+GNU Free Documentation License from time to time.  Such new versions
+will be similar in spirit to the present version, but may differ in
+detail to address new problems or concerns.  See
+http://www.gnu.org/copyleft/.
+
+Each version of the License is given a distinguishing version number.
+If the Document specifies that a particular numbered version of this
+License "or any later version" applies to it, you have the option of
+following the terms and conditions either of that specified version or
+of any later version that has been published (not as a draft) by the
+Free Software Foundation.  If the Document does not specify a version
+number of this License, you may choose any version ever published (not
+as a draft) by the Free Software Foundation.  If the Document
+specifies that a proxy can decide which future versions of this
+License can be used, that proxy's public statement of acceptance of a
+version permanently authorizes you to choose that version for the
+Document.
+
+11. RELICENSING
+
+"Massive Multiauthor Collaboration Site" (or "MMC Site") means any
+World Wide Web server that publishes copyrightable works and also
+provides prominent facilities for anybody to edit those works.  A
+public wiki that anybody can edit is an example of such a server.  A
+"Massive Multiauthor Collaboration" (or "MMC") contained in the site
+means any set of copyrightable works thus published on the MMC site.
+
+"CC-BY-SA" means the Creative Commons Attribution-Share Alike 3.0 
+license published by Creative Commons Corporation, a not-for-profit 
+corporation with a principal place of business in San Francisco, 
+California, as well as future copyleft versions of that license 
+published by that same organization.
+
+"Incorporate" means to publish or republish a Document, in whole or in 
+part, as part of another Document.
+
+An MMC is "eligible for relicensing" if it is licensed under this 
+License, and if all works that were first published under this License 
+somewhere other than this MMC, and subsequently incorporated in whole or 
+in part into the MMC, (1) had no cover texts or invariant sections, and 
+(2) were thus incorporated prior to November 1, 2008.
+
+The operator of an MMC Site may republish an MMC contained in the site
+under CC-BY-SA on the same site at any time before August 1, 2009,
+provided the MMC is eligible for relicensing.
+
+
+ADDENDUM: How to use this License for your documents
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and
+license notices just after the title page:
+
+    Copyright (c)  YEAR  YOUR NAME.
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.3
+    or any later version published by the Free Software Foundation;
+    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+    A copy of the license is included in the section entitled "GNU
+    Free Documentation License".
+
+If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
+replace the "with...Texts." line with this:
+
+    with the Invariant Sections being LIST THEIR TITLES, with the
+    Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+
+If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License,
+to permit their use in free software.
+
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,75 @@
+\inputencoding{utf8}
+\HeaderA{pder}{Compute Matrix of Partial Derivatives}{pder}
+\keyword{method}{pder}
+%
+\begin{Description}\relax
+\code{pder} is a secondary function called by \code{get.cov.matrix}. It 
+computes the matrix of partial derivatives for the model predictions and the
+residual variability.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  pder(subproblem = NULL,
+       x = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{subproblem}] A list containing the following levels:\begin{description}
+
+\item[data] A list containing the following levels:\begin{description}
+
+\item[xdata] 1 x m matrix of independent variable.
+\item[ydata] n x m matrix of observations from model states.
+\item[ids] Data.frame of indices for data subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[dosing] A list containing the following levels:\begin{description}
+
+\item[history] d x 4 data.frame of dosing history.
+\item[ids] data.frame of indices for dosing subsetting
+(output from \code{find.id}).
+
+\end{description}
+
+\item[cov] A list containing the following levels:\begin{description}
+
+\item[data] c x t data.frame of covariate history.
+\item[ids] Data.frame of indices for cov subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[states] Indices of the states to be output by the model.
+\item[init] A data.frame of parameter data with the following columns:
+'names', 'type', 'value', 'isfix', 'lb', and 'ub'.
+\item[debugmode] Logical indicator of debugging mode.
+\item[modfun] Model function.
+\item[varfun] Variance function; if empty \code{weighting.additive} is
+used.
+\item[secfun] Secondary parameter function.
+
+\end{description}
+
+
+\item[\code{x}] The vector of \emph{p} final parameter estimates.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Return a list containing the \emph{p} x \emph{p} matrices of partial
+derivatives for model predictions (\code{mpder}) and residual variability
+(\code{wpder}).
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{get.cov.matrix}{get.cov.matrix}}
+\end{SeeAlso}

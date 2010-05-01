@@ -1,0 +1,9 @@
+example1     Simulation of a model defined with closed form solution.
+
+example2     Estimation of a model defined with closed form solution.
+
+example3     Dosing in model defined with differential equations.
+
+example4     Estimation of a model defined with ordinary differential equations.
+
+example5     Estimation of a model defined with delay differential equations.

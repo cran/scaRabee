@@ -1,0 +1,45 @@
+\inputencoding{utf8}
+\HeaderA{scaRabee-package}{scaRabee Toolkit}{scaRabee.Rdash.package}
+\aliasA{scaRabee}{scaRabee-package}{scaRabee}
+\keyword{package}{scaRabee-package}
+%
+\begin{Description}\relax
+Framework for Pharmacokinetic-Pharmacodynamic Model Simulation and Optimization
+\end{Description}
+%
+\begin{Details}\relax
+
+\Tabular{ll}{
+Package: & scaRabee\\{}
+Type: & Package\\{}
+Version: & 1.0\\{}
+Date: & 2010-05-01\\{}
+License: & GPL-v3 \\{}
+LazyLoad: & yes
+}
+\pkg{scaRabee} is a toolkit for modeling and simulation primarily intended for
+the field
+of pharmacometrics. This package is a R port of Scarabee, a Matlab-based piece of
+software developed as a fairly simple application for the simulation and
+optimization of pharmacokinetic and/or pharmacodynamic models specified
+with explicit solutions, ordinary or delayed differential equations.
+
+The method of optimization used in scaRabee is based upon the Nelder-Mead simplex
+algorithm, as implemented by the \code{fminsearch} function from the
+\pkg{neldermead} package.
+
+Please, refer to the vignette to learn how to run analyses with \pkg{scaRabee} and
+read more about the methods used in \pkg{scaRabee}.
+
+\pkg{scaRabee} is  available on the Comprehensive R Archive Network and also at:
+\url{http://code.google.com/p/pmlab/}
+
+\end{Details}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{neldermead}{neldermead}}
+\end{SeeAlso}

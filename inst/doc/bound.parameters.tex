@@ -1,0 +1,50 @@
+\inputencoding{utf8}
+\HeaderA{bound.parameters}{Forces parameter estimates between defined boundaries.}{bound.parameters}
+\keyword{method}{bound.parameters}
+%
+\begin{Description}\relax
+\code{bound.parameters} is a utility function called during estimation runs. It forces the parameter
+estimates to remain within the boundaries defined in the .csv file of initial estimates.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  bound.parameters(x = NULL,
+                   lb = NULL,
+                   ub = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] A vector of \emph{p} parameter estimates.
+\item[\code{lb}] A vector of \emph{p} lower boundaries.
+\item[\code{ub}] A vector of \emph{p} upper boundaries.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Returns a vector of \emph{p} values. The ith element of the returned vector is: \begin{itemize}
+
+\item x[i]  if lb[i] < x[i] < ub[i]
+\item lb[i] if x[i] <= lb[i]
+\item ub[i] if ub[i] <= x[i]
+
+\end{itemize}
+
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+
+bound.parameters(seq(1:5), lb=rep(3,5), ub=rep(4,5))
+
+# The following call should return an error message
+bound.parameters(1, lb=rep(3,5), ub=rep(4,5))
+
+\end{ExampleCode}
+\end{Examples}

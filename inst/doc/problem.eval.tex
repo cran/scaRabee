@@ -1,0 +1,82 @@
+\inputencoding{utf8}
+\HeaderA{problem.eval}{Evaluation of structural and residual variability models}{problem.eval}
+\keyword{method}{problem.eval}
+%
+\begin{Description}\relax
+\code{problem.eval} is a secondary function called during estimation runs. It 
+evaluates the structural model and the residual variability model at given
+point estimates and at given values of the independent variable (typically
+time).
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  problem.eval(subproblem = NULL,
+               x = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{subproblem}] A list containing the following levels:\begin{description}
+
+\item[data] A list containing the following levels:\begin{description}
+
+\item[xdata] 1 x m matrix of independent variable.
+\item[ydata] n x m matrix of observations from model states.
+\item[ids] Data.frame of indices for data subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[dosing] A list containing the following levels:\begin{description}
+
+\item[history] d x 4 data.frame of dosing history.
+\item[ids] data.frame of indices for dosing subsetting
+(output from \code{find.id}).
+
+\end{description}
+
+\item[cov] A list containing the following levels:\begin{description}
+
+\item[data] c x t data.frame of covariate history.
+\item[ids] Data.frame of indices for cov subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[states] Indices of the states to be output by the model.
+\item[init] A data.frame of parameter data with the following columns:
+'names', 'type', 'value', 'isfix', 'lb', and 'ub'.
+\item[debugmode] Logical indicator of debugging mode.
+\item[modfun] Model function.
+\item[varfun] Variance function; if empty \code{weighting.additive} is
+used.
+\item[secfun] Secondary parameter function.
+
+\end{description}
+
+
+\item[\code{x}] A vector of numerical estimates of numerical parameters.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Return a list of two elements: \begin{description}
+
+\item[f] A vector of model evaluations at all requested time points (all
+states values are concatenated into a single vector).
+\item[weight] A vector of residual variability related to the model
+evaluations.
+
+\end{description}
+
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{fitmle}{fitmle}}
+\end{SeeAlso}

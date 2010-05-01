@@ -1,0 +1,47 @@
+\inputencoding{utf8}
+\HeaderA{find.id}{Scan for Integers in a Sorted Vector and Return Table of Min and Max Indices}{find.id}
+\keyword{method}{find.id}
+%
+\begin{Description}\relax
+\code{find.id} is a secondary function, which main purpose is to split the 
+problem into sub-problems. It scans a vector of sorted integers (i.e. the
+\code{DoseID} variable from the data, dosing and covariate input files) and
+returns a table indicating between indices a particular integer is used.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  find.id(x)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] A vector of sorted integers starting at 1 and increasing to n.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Returns a data.frame with the following columns: \begin{description}
+
+\item[ID] the unique integers of \code{x}.
+\item[starting] first indice of \code{x} where the corresponding integer is
+used.
+\item[ending] last indice of \code{x} where the corresponding integer is
+used.
+
+\end{description}
+
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{Examples}
+\begin{ExampleCode}
+  x <- rep(1:3,each=5)
+  x
+  find.id(x)
+\end{ExampleCode}
+\end{Examples}

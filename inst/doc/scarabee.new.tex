@@ -1,0 +1,76 @@
+\inputencoding{utf8}
+\HeaderA{scarabee.new}{Create a scaRabee Analysis Folder}{scarabee.new}
+\keyword{method}{scarabee.new}
+%
+\begin{Description}\relax
+\code{scarabee.new} creates a new \pkg{scaRabee} analysis folder.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  scarabee.new(name = 'myanalysis',
+               path = getwd(),
+               type = 'simulation',
+               template = 'ode',
+               with.inputs = TRUE)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{name}] A string of characters defining the name of the new folder; 
+\code{name} is also used to name the \pkg{scaRabee} analysis script. Default
+is 'myanalysis'.
+\item[\code{path}] A path where the new folder is created. Default is the current
+working directory.
+\item[\code{type}] A string of characters, either 'simulation' or 'estimation'.
+Default is 'simulation'.
+\item[\code{template}] A string of characters, either 'explicit', 'ode' or 'dde'.
+Default is 'ode'.
+\item[\code{with.inputs}] A logical indicator whether template input files should be
+created or not. Default is TRUE.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+The content of new \pkg{scaRabee} analysis folder (\code{path}/\code{name})
+is:\begin{description}
+
+\item[model.definition] A sub-folder containing: \begin{description}
+
+\item[model.R] A template-based R script for the definition of the
+structural model. Depending on \code{template}, it is either based on
+a template for model defined with closed form solution ('explicit'),
+ordinary differential equations ('ode') or delay differential
+equations ('dde').
+\item[weighting.R] A template-based R script for the definition of the
+residual variability model.
+\item[secondary.R] A template-based R script for the definition of
+secondary parameters.
+
+\end{description}
+
+
+\item[\code{name}.R] The template-based \pkg{scaRabee} analysis script.
+\item[data.csv] (optional) An empty comma-separated file for system
+observations; contains the following default headers: Dose ID, Time,
+Y(1).
+\item[dosing.csv] (optional) An empty comma-separated file for dosing
+events; contains the following default headers: Dose ID, Time, State,
+Bolus, Infusion Rate.
+\item[initials.csv] (optional) An empty comma-separated file for initial
+guesses of model parameter estimates; contains the following default
+headers: Parameter, Type, Value, Fixed, Lower bound, Upper bound.
+\item[covariates.csv] (optional) An empty comma-separated file for covariate
+observations; contains the following default headers: Dose ID, Time,
+Cov(1).
+
+\end{description}
+
+See \code{vignette('scaRabee',package='scaRabee')} to learn about how to
+specify your model based on those template files.
+\end{Details}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}

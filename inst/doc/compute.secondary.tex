@@ -1,0 +1,86 @@
+\inputencoding{utf8}
+\HeaderA{compute.secondary}{Computes secondary parameter values}{compute.secondary}
+\keyword{method}{compute.secondary}
+%
+\begin{Description}\relax
+\code{compute.secondary} is a secondary function called during estimations
+runs. It evaluates the function defined as the \code{subproblem\$sec}
+argument at the initial and the final estimates of the model parameters.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  compute.secondary(subproblem = NULL,
+                    x = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{subproblem}] A list typically provided by \code{get.secondary} containing
+the following levels:\begin{description}
+
+\item[data] A list containing the following levels:\begin{description}
+
+\item[xdata] 1 x m matrix of independent variable.
+\item[ydata] n x m matrix of observations from model states.
+\item[ids] Data.frame of indices for data subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[dosing] A list containing the following levels:\begin{description}
+
+\item[history] d x 4 data.frame of dosing history.
+\item[ids] data.frame of indices for dosing subsetting
+(output from \code{find.id}).
+
+\end{description}
+
+\item[cov] A list containing the following levels:\begin{description}
+
+\item[data] c x t data.frame of covariate history.
+\item[ids] Data.frame of indices for cov subsetting (output
+from \code{find.id}).
+
+\end{description}
+
+\item[states] Indices of the states to be output by the model.
+\item[init] A data.frame of parameter data with the following columns:
+'names', 'type', 'value', 'isfix', 'lb', and 'ub'.
+\item[debugmode] Logical indicator of debugging mode.
+\item[modfun] Model function.
+\item[varfun] Variance function; if empty \code{weighting.additive} is
+used.
+\item[secfun] Secondary parameter function.
+
+\end{description}
+
+
+\item[\code{x}] The vector of \emph{p} final parameter estimates.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Return a list of with the following elements:\begin{description}
+
+\item[init] The vector of \emph{s} secondary parameter estimates derived
+from initial structural model parameter estimates.
+\item[estimates] The vector of \emph{s} secondary parameter estimates
+derived from final structural model parameter estimates.
+\item[names] The vector of \emph{s} secondary parameter names.
+
+\end{description}
+
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{scarabee.analysis}{scarabee.analysis}},
+\code{\LinkA{weighting.additive}{weighting.additive}},
+\code{\LinkA{fitmle}{fitmle}},
+\code{\LinkA{get.secondary}{get.secondary}}
+\end{SeeAlso}

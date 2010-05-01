@@ -1,0 +1,69 @@
+\inputencoding{utf8}
+\HeaderA{init.report}{Initiliaze Iteration Log and Report Files}{init.report}
+\keyword{method}{init.report}
+%
+\begin{Description}\relax
+\code{init.report} is a secondary function called during estimation runs. It
+creates the log file and the report file in the results \& backup directory.
+The log file stores the values of the objective function and the parameter
+estimates at each iteration of the estimation process. The report file reports
+information about the estimation run, including the final estimates and some
+related statistics.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  init.report(param = NULL,
+              files = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{param}] A data.frame containing the values of fixed and variable 
+parameter estimates. Expected to contain the 'names', 'type', 'value',
+'isfix', 'lb', and 'ub' columns.
+\item[\code{files}] A list of input used for the analysis. The following elements are
+expected and none of them could be null: \begin{description}
+
+\item[data] A .csv file located in the working directory, which contains
+the observations of the dependent variable(s) to be modeled. The
+expected format of this file is described in details in
+\code{vignette('scaRabee',package='scaRabee')}.
+\item[param] A .csv file located in the working directory, which contains
+the initial guess(es) for the model parameter(s) to be optimized or used
+for model simulation. The expected format of this file is described in
+details in \code{vignette('scaRabee',package='scaRabee')}.
+\item[dose] A .csv file located in the working directory, which contains
+the dosing information. The expected format of this file is described in
+details in \code{vignette('scaRabee',package='scaRabee')}.
+\item[cov] A .csv file located in the working directory, which contains
+the values of one or more covariates that may or may or be used within
+the model. The expected format of this file is described in details in
+\code{vignette('scaRabee',package='scaRabee')}.
+\item[model] A .R file located in the 'model.definition'
+sub-directory in the working directory, which defines the model. Models
+specified with explicit, ordinary or delayed differential equations
+should be preferentially defined using the provided templates. More
+details about the expected structure of this file is provided in
+\code{vignette('scaRabee',package='scaRabee')}, in case the user would
+want to develop her/his own template.
+\item[var] A .R file located in the 'model.definition' sub-directory
+in the working directory, which defines the model of residual
+variability. More details about the expected content of this file is
+provided in \code{vignette('scaRabee',package='scaRabee')}.
+\item[sec] A .R file located in the 'model.definition' sub-directory
+in the working directory, which defines the method of computation of
+secondary parameters (derived from the fixed or estimated model
+parameters). More details about the expected content of this file is
+provided in \code{vignette('scaRabee',package='scaRabee')}.
+
+\end{description}
+
+
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}

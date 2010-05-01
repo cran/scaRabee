@@ -1,0 +1,28 @@
+\inputencoding{utf8}
+\HeaderA{weighting.additive}{Default Residual Variability Model}{weighting.additive}
+\keyword{method}{weighting.additive}
+%
+\begin{Description}\relax
+\code{weighting additive} is a secondary function called during estimation run
+for which no residual variability model was provided
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  weighting.additive(f = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{f}] matrix of structural model predictions.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Return a matrix of numeric values of the same dimension as \code{f}.
+\end{Value}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
