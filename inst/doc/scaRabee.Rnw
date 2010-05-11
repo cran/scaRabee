@@ -1215,7 +1215,7 @@ graph output and a .csv report file.
 % Bibliography
 \bibliographystyle{plain}
 \renewcommand*{\refname}{}
-\bibliography{scaRabee.bib}
+\bibliography{scaRabee}
 
 \cleardoublepage
 \section{Network of \scaRabee{} functions}

@@ -1,0 +1,4 @@
+2010/05/11 Sebastien Bihorel <sb.pmlab@gmail.com>
+
+  * scaRabee.Rnw: corrected \bibliography{scaRabee.bib} to
+    \bibliography{scaRabee} to address compilation issue in Windows.
