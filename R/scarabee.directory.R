@@ -1,4 +1,3 @@
-
 #Copyright (c) 2009, 2010 Sebastien Bihorel
 #All rights reserved.
 #
@@ -19,29 +18,29 @@
 #
 
 scarabee.directory <- function (curwd=getwd(),
-                                files=NULL,
-                                runtype=NULL,
-                                analysis=NULL){
-
+    files=NULL,
+    runtype=NULL,
+    analysis=NULL){
+  
   # Check inputs
   if (!is.null(curwd)){
     if (!file.exists(curwd)){
       stop('scarabee.directory: curwd is expected to be an existing path.',
-           call.=FALSE)
+          call.=FALSE)
     }
   } else {
     stop('scarabee.directory: curwd is expected to be an existing path, but is NULL.',
-         call.=FALSE)
+        call.=FALSE)
   }
   
   # Interactive call
   if (interactive()){
     repeat{
       wd <- readline(sprintf(paste('Change the current working directory: %s?\n',
-                                   '(Enter a new path if you want to use a new ',
-                                   'directory)\n',
-                                   sep=''),
-                             curwd))
+                  '(Enter a new path if you want to use a new ',
+                  'directory)\n',
+                  sep=''),
+              curwd))
       if (wd!=''){
         if (file.exists(wd)){
           setwd(wd)
@@ -52,21 +51,21 @@ scarabee.directory <- function (curwd=getwd(),
       }
     }
   }
-
+  
   # Create new directory and set working directory
   dirCreated <- 0 ; i <- 1
-
+  
   while (dirCreated==0){
     if (i<10){
       dirName <- sprintf('%s.%s.0%d',
-                         analysis,
-                         substring(runtype,1,3),
-                         i)
+          analysis,
+          substring(runtype,1,3),
+          i)
     } else {
       dirName <- sprintf('%s.%s.%d',
-                         analysis,
-                         substring(runtype,1,3),
-                         i)
+          analysis,
+          substring(runtype,1,3),
+          i)
     }
     if (file.exists(dirName)){
       i <- i+1
@@ -75,54 +74,79 @@ scarabee.directory <- function (curwd=getwd(),
       dirCreated <- 1
     }
   }
-
+  
   newwd <- paste(getwd(),'/',dirName,'/',sep='')
   setwd(newwd)
-
+  
   # Create sub-directories
   dir.create(paste(newwd,'model.definition/',sep=''))
   dir.create(paste(newwd,'run.config.files/',sep=''))
   dir.create(paste(newwd,'run.config.files/model.definition/',sep=''))
- 
+   
+  # Create files
+  file.create(paste(newwd,files$data,sep=''))
+  file.create(paste(newwd,files$param,sep=''))
+  file.create(paste(newwd,files$dose,sep=''))
+  file.create(paste(newwd,files$cov,sep=''))
+  file.create(paste(newwd,'model.definition/',files$model,'.R',sep=''))
+  file.create(paste(newwd,'model.definition/',files$var,'.R',sep=''))
+  file.create(paste(newwd,'model.definition/',files$sec,'.R',sep=''))
+  file.create(paste(newwd,'run.config.files/',files$data,sep=''))
+  file.create(paste(newwd,'run.config.files/',files$param,sep=''))
+  file.create(paste(newwd,'run.config.files/',files$dose,sep=''))
+  file.create(paste(newwd,'run.config.files/',files$cov,sep=''))
+  file.create(paste(newwd,'run.config.files/model.definition/',files$model,'.R',sep=''))
+  file.create(paste(newwd,'run.config.files/model.definition/',files$var,'.R',sep=''))
+  file.create(paste(newwd,'run.config.files/model.definition/',files$sec,'.R',sep=''))
+  
   # Copy configuration files to working directory
   file.copy(from=paste('../',files$data,sep=''),
-            to=newwd)
+      to=paste(newwd,files$data,sep=''),overwrite=T)
   file.copy(from=paste('../',files$param,sep=''),
-            to=newwd)
+      to=paste(newwd,files$param,sep=''),overwrite=T)
   file.copy(from=paste('../',files$dose,sep=''),
-            to=newwd)
+      to=paste(newwd,files$dose,sep=''),overwrite=T)
   file.copy(from=paste('../',files$cov,sep=''),
-            to=newwd)
+      to=paste(newwd,files$cov,sep=''),overwrite=T)
   file.copy(from=paste('../model.definition/',files$model,'.R',sep=''),
-            to=paste(newwd,'model.definition/',sep=''))
+      to=paste(newwd,'model.definition/',files$model,'.R',sep=''),
+      overwrite=T)
   file.copy(from=paste('../model.definition/',files$var,'.R',sep=''),
-            to=paste(newwd,'model.definition/',sep=''))
+      to=paste(newwd,'model.definition/',files$var,'.R',sep=''),
+      overwrite=T)
   file.copy(from=paste('../model.definition/',files$sec,'.R',sep=''),
-            to=paste(newwd,'model.definition/',sep=''))
-
+      to=paste(newwd,'model.definition/',files$sec,'.R',sep=''),
+      overwrite=T)
+  
   # Copy configuration files to backup directory
   file.copy(from=paste('../',files$data,sep=''),
-            to=paste(newwd,'run.config.files/',sep=''))
+      to=paste(newwd,'run.config.files/',files$data,sep=''),overwrite=T)
   file.copy(from=paste('../',files$param,sep=''),
-            to=paste(newwd,'run.config.files/',sep=''))
+      to=paste(newwd,'run.config.files/',files$param,sep=''),overwrite=T)
   file.copy(from=paste('../',files$dose,sep=''),
-            to=paste(newwd,'run.config.files/',sep=''))
+      to=paste(newwd,'run.config.files/',files$dose,sep=''),overwrite=T)
   file.copy(from=paste('../',files$cov,sep=''),
-            to=paste(newwd,'run.config.files/',sep=''))
+      to=paste(newwd,'run.config.files/',files$cov,sep=''),overwrite=T)
   file.copy(from=paste('../model.definition/',files$model,'.R',sep=''),
-            to=paste(newwd,'run.config.files/model.definition/',sep=''))
+      to=paste(newwd,'run.config.files/model.definition/',
+          files$model,'.R',sep=''),overwrite=T)
   file.copy(from=paste('../model.definition/',files$var,'.R',sep=''),
-            to=paste(newwd,'run.config.files/model.definition/',sep=''))
+      to=paste(newwd,'run.config.files/model.definition/',
+          files$var,'.R',sep=''),overwrite=T)
   file.copy(from=paste('../model.definition/',files$sec,'.R',sep=''),
-            to=paste(newwd,'run.config.files/model.definition/',sep=''))
-            
+      to=paste(newwd,'run.config.files/model.definition/',
+          files$sec,'.R',sep=''),overwrite=T)
+  
   # Copy original R script if possible
   script <- paste('../',analysis,'.R',sep='')
-
+  
   if (file.exists(script)){
-    file.copy(from=script,to=newwd)
-    file.copy(from=script,to=paste(newwd,'run.config.files/',sep=''))
+    file.create(paste(newwd,analysis,'.R',sep=''))
+    file.create(paste(newwd,'run.config.files/',analysis,'.R',sep=''))
+    file.copy(from=script,to=paste(newwd,analysis,'.R',sep=''),overwrite=T)
+    file.copy(from=script,
+        to=paste(newwd,'run.config.files/',analysis,'.R',sep=''),
+        overwrite=T)
   }
   
 }
-

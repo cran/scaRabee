@@ -1,3 +1,10 @@
+2010/05/25 Sebastien Bihorel <sb.pmlab@gmail.com>
+
+  * DESCRIPTION: added missing dependencies to deSolve and PBSddesolve packages
+  
+  * scarabee.directory: corrected permission problems in Windows environment
+  in all file.copy calls.
+  
 2010/05/11 Sebastien Bihorel <sb.pmlab@gmail.com>
 
   * scaRabee.Rnw: corrected \bibliography{scaRabee.bib} to

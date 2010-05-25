@@ -27,7 +27,7 @@ if (interactive()){
             file.remove(paste(wd,'test.R',sep=''))
             break
           }
-          cat('You don\'t have permissions on this directory.\n')
+          cat('\nYou don\'t have permissions on this directory.\n')
         }
 
       } else {
@@ -42,7 +42,7 @@ if (interactive()){
           file.remove(paste(wd,'test.R',sep=''))
           break
         }
-        cat('You don\'t have permissions on this directory.\n')
+        cat('\nYou don\'t have permissions on this directory.\n')
       }
 
     } else {
