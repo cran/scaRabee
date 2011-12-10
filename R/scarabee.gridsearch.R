@@ -38,7 +38,7 @@ scarabee.gridsearch <- function(problem=NULL,
       
       # Create subproblem for id
       idproblem <- problem[c('code','method','init','debugmode','modfun',
-                             'ddedt','hbsize')]
+                             'solver.options')]
       idproblem$data <- problem$data[[id]]
       
       # Compute ML for each id
@@ -46,7 +46,7 @@ scarabee.gridsearch <- function(problem=NULL,
         
         # Create subproblem
         subproblem <- idproblem[c('code','method','init','debugmode','modfun',
-                                  'ddedt','hbsize')]
+                                  'solver.options')]
         subproblem$data$xdata <- sort(unique(idproblem$data[[i]]$ana$TIME))
         subproblem$data$data <- idproblem$data[[i]]$ana
         subproblem$bolus <- idproblem$data[[i]]$bolus

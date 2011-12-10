@@ -115,31 +115,33 @@ make.dosing <- function(derparms=NULL,
                        AMT=numeric(0),
                        RATE=numeric(0),
                        TYPE=numeric(0))
-    
+  
   cmts <- unique(c(unique(bolus$CMT),unique(infusion$CMT)))
   
   for (cmt in cmts){
-    if (size(infusion,1) > 0){  # There is infusion data
-      tmp.data <- convert.infusion(infusion)
+    cmt.bolus <- bolus[bolus$CMT==cmt,]
+    cmt.infusion <- infusion[infusion$CMT==cmt,]
+    if (size(cmt.infusion,1) > 0){  # There is infusion data
+      tmp.data <- convert.infusion(cmt.infusion)
       tmp.data$TYPE <- 0
-      if(size(bolus,1) > 0){     # There is bolus data (need to infer rate)
-        bolus$RATE <- approx(x=tmp.data$TIME,
-                             y=tmp.data$RATE,
-                             xout=bolus$TIME,
-                             method='constant',
-                             yleft=0,
-                             rule=2,
-                             f=0,
-                             ties='ordered')$y
-        bolus$TYPE <- 1
-        tmp.data <- rbind(tmp.data, bolus)
+      if(size(cmt.bolus,1) > 0){     # There is bolus data (need to infer rate)
+        cmt.bolus$RATE <- approx(x=tmp.data$TIME,
+                                 y=tmp.data$RATE,
+                                 xout=cmt.bolus$TIME,
+                                 method='constant',
+                                 yleft=0,
+                                 rule=2,
+                                 f=0,
+                                 ties='ordered')$y
+        cmt.bolus$TYPE <- 1
+        tmp.data <- rbind(tmp.data, cmt.bolus)
         tmp.data <- tmp.data[order(tmp.data$TIME,
                                    tmp.data$CMT,
                                    tmp.data$TYPE),]
       }
       tmp.data <- tmp.data[,c('TIME','CMT','AMT','RATE','TYPE')]
     } else {                    # There is no infusion data
-      tmp.data <- bolus[,c('TIME','CMT','AMT','RATE')]
+      tmp.data <- cmt.bolus[,c('TIME','CMT','AMT','RATE')]
       tmp.data$TYPE <- 1
     }
     dosing <- rbind(dosing,tmp.data)

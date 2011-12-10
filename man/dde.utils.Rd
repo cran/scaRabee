@@ -20,9 +20,6 @@
 \name{dde.utils}
 \alias{dde.syst}
 \alias{dde.lags}
-\alias{dde.map}
-\alias{dde.switch}
-\alias{get.switch.vectors}
 \title{
   Utility Functions for Delay Differential Equation Systems
 }
@@ -39,14 +36,6 @@
            derparms = NULL,
            codelags = NULL,
            check = FALSE)
-  dde.map(t = NULL,
-          y = NULL,
-          swID = NULL,
-          dde.parms = NULL)
-  dde.switch(t = NULL,
-             y = NULL,
-             dde.parms = NULL)
-  get.switch.vectors(dosing = NULL)
 }
 \arguments{
   \item{t}{A scalar or a vector of numerical time values.}
@@ -81,9 +70,6 @@
     the model file.}
   \item{check}{An indicator whether checks should be performed to validate 
     function inputs.}
-  \item{swID}{A vector of switch ID.}
-  \item{dosing}{A data.frame of dosing information created by \code{make.dosing}
-    from instantaneous and zero-order inputs into the system.}
 }
 \details{
   \code{dde.syst} is the function which actually evaluates the system of delay
@@ -92,19 +78,9 @@
   \code{dde.lags} is the function which evaluates the code specified in the $LAG 
   block and defines the delays at which the system needs to be computed.
   
-  \code{dde.map} and \code{dde.switch} are the functions that provide the map 
-  and switches required by the \code{dde} function. Switches allow the system to
-  produce discontinuous events (such as an instantaneous bolus). Switches occur
-  when the function defined in \code{dde.switch} becomes zero due to a change 
-  from positive to negative values. See vignette of the \pkg{PBSddesolve} 
-  package for more details.
-  
-  \code{get.switch.vectors} is the function that creates the data needed for 
-  \code{dde.switch} to setup the switches.
 }
 \seealso{
-  \code{\link[scaRabee]{dde.model}}, \code{\link[PBSddesolve]{PBSddesolve}}
-  \code{\link[scaRabee]{make.dosing}}
+  \code{\link[scaRabee]{dde.model}}, \code{\link[scaRabee]{make.dosing}}
 }
 \author{
   Sebastien Bihorel (\email{sb.pmlab@gmail.com})

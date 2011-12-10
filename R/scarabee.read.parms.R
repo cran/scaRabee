@@ -25,12 +25,6 @@ scarabee.read.parms <- function(files=NULL){
     stop('files argument is NULL.')
   }
   
-  # Read parameter files
-  parms <- read.csv(file=files$param,
-                    header=TRUE,
-                    as.is=TRUE,
-                    col.names=c('names','type','value','isfix','lb','ub'))
-  
   if (is.null(files$param)){
     stop('files argument does not have any param level or files$param is NULL.')
   }
@@ -40,6 +34,7 @@ scarabee.read.parms <- function(files=NULL){
   }
   
   # Read parameter file
+  cat('Processing parameter file:\n')
   param <- read.csv(files$param,
                     header=TRUE,
                     as.is=TRUE,
@@ -92,6 +87,8 @@ scarabee.read.parms <- function(files=NULL){
     stop(paste('parameters with incorrect type; check index:\n  ',
                paste(wrongtype,collapse=', '),sep=''))
   }
+  
+  cat('  Done\n\n')
   
   return(param)
   

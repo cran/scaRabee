@@ -37,7 +37,8 @@
             xdata = NULL,
             covdata = NULL,
             issim = 0,
-            check = FALSE)
+            check = FALSE,
+            options = list(method='lsoda'))
 }
 \arguments{
   \item{parms}{A vector of primary parameters.}
@@ -58,6 +59,8 @@
   \item{issim}{An indicator for simulation or estimation runs.}
   \item{check}{An indicator whether checks should be performed to validate 
     function inputs.}
+  \item{options}{A list of differential equation solver options. Currently
+    not modifiable by users.}
 }
 \details{
   \code{ode.model} evaluates the model for each treatment of each individual 

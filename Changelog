@@ -1,9 +1,21 @@
-2011-04-12 Sebastien Bihorel <sb.pmlab@gmail.com>
+2011/12/10 Sebastien Bihorel <sb.pmlab@gmail.com>
+  * Switch from dde function (PBSddesolve package) to dede function (deSolve
+  package) to integrate of delayed differential equations. Dependency to 
+  
+  * Change in input arguments to scarabee.new due to the switch in the dede
+  solver.
+  
+  * Bug fixes in making.dosing.R, ode.model.R, and dde.model.R to correct 
+  problem with dosing history.
+  
+  * Deprecated functions: dde.map, dde.switch, and get.switch.vector.
+
+2011/04/12 Sebastien Bihorel <sb.pmlab@gmail.com>
   * Windows-specific bugs in demos have been corrected
   
   * Vignette updated to document the demos.
   
-2011-03-31 Sebastien Bihorel <sb.pmlab@gmail.com>
+2011/03/31 Sebastien Bihorel <sb.pmlab@gmail.com>
   * scaRabee gets a major overhaul with version 1.1. Changes affect almost every
   provided functionalities. 
     * scaRabee now reads (only) datasets specified using NONMEM or S-ADPAT 

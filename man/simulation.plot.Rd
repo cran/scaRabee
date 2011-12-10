@@ -77,9 +77,6 @@
       'names', 'type', 'value', 'isfix', 'lb', and 'ub'.}
     \item{debugmode}{Logical indicator of debugging mode.}
     \item{modfun}{Model function.}
-    \item{hbsize}{An integer scalar providing the size of the history buffer for
-      the solver of delay differential equations. This variable is ignored if
-      the model file does not contain a $DDE tag.}
     }
   }
   \item{simdf}{A data.frame of simulated and observed data typically created

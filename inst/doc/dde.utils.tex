@@ -1,10 +1,7 @@
 \inputencoding{utf8}
 \HeaderA{dde.utils}{Utility Functions for Delay Differential Equation Systems}{dde.utils}
 \aliasA{dde.lags}{dde.utils}{dde.lags}
-\aliasA{dde.map}{dde.utils}{dde.map}
-\aliasA{dde.switch}{dde.utils}{dde.switch}
 \aliasA{dde.syst}{dde.utils}{dde.syst}
-\aliasA{get.switch.vectors}{dde.utils}{get.switch.vectors}
 \keyword{method}{dde.utils}
 %
 \begin{Description}\relax
@@ -22,14 +19,6 @@ functions is typically called directly by users.
            derparms = NULL,
            codelags = NULL,
            check = FALSE)
-  dde.map(t = NULL,
-          y = NULL,
-          swID = NULL,
-          dde.parms = NULL)
-  dde.switch(t = NULL,
-             y = NULL,
-             dde.parms = NULL)
-  get.switch.vectors(dosing = NULL)
 \end{verbatim}
 \end{Usage}
 %
@@ -70,9 +59,6 @@ of code.
 the model file.
 \item[\code{check}] An indicator whether checks should be performed to validate 
 function inputs.
-\item[\code{swID}] A vector of switch ID.
-\item[\code{dosing}] A data.frame of dosing information created by \code{make.dosing}
-from instantaneous and zero-order inputs into the system.
 \end{ldescription}
 \end{Arguments}
 %
@@ -83,15 +69,6 @@ differential equations specified in the \$DDE block.
 \code{dde.lags} is the function which evaluates the code specified in the \$LAG 
 block and defines the delays at which the system needs to be computed.
 
-\code{dde.map} and \code{dde.switch} are the functions that provide the map 
-and switches required by the \code{dde} function. Switches allow the system to
-produce discontinuous events (such as an instantaneous bolus). Switches occur
-when the function defined in \code{dde.switch} becomes zero due to a change 
-from positive to negative values. See vignette of the \pkg{PBSddesolve} 
-package for more details.
-
-\code{get.switch.vectors} is the function that creates the data needed for 
-\code{dde.switch} to setup the switches.
 \end{Details}
 %
 \begin{Author}\relax
@@ -99,6 +76,5 @@ Sebastien Bihorel (\email{sb.pmlab@gmail.com})
 \end{Author}
 %
 \begin{SeeAlso}\relax
-\code{\LinkA{dde.model}{dde.model}}, \code{\LinkA{PBSddesolve}{PBSddesolve}}
-\code{\LinkA{make.dosing}{make.dosing}}
+\code{\LinkA{dde.model}{dde.model}}, \code{\LinkA{make.dosing}{make.dosing}}
 \end{SeeAlso}

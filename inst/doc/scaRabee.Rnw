@@ -12,7 +12,6 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}   % need for figures
-\usepackage{pstricks}
 \usepackage{verbatim}   % useful for program listings
 \usepackage{color}      % use if color is used in text
 \usepackage[pdfborder={0 0 0}]{hyperref}   % use for hypertext links, including
@@ -35,7 +34,7 @@
 
 \title{The scaRabee Package: An R-based Tool for Model Simulation and 
   Optimization in Pharmacometrics\\[5mm]
-  Version 1.1-1\\[5mm]}
+  Version 1.1-2\\[5mm]}
 \author{S\'ebastien Bihorel}
 
 \begin{document}
@@ -102,26 +101,12 @@ in interactive or batch mode. Presentations of the \R{} language are out of the
 scope of this manual.
 
 \subsection{What's new?}
-Version 1.1 introduces major changes in the design and functionalities of 
-\scaRabee{}. The methods to define the structural models, residual variability 
-models, and secondary parameter computations have been simplified so that all 
-can be specified in a single file which is now stored directly in the working
-directory. A tag-based syntax is implemented in the new model file, allowing
-users to provide \R{} code in blocks easily identifiable (see Section 
-\ref{editmodel}). An automated interpreter extracts the information from the 
-model file and passes it to the relevant analysis functions. Users do not have 
-to insert their code in the middle of template \R{} code anymore!
-
-Dosing and observations data are now extracted from a single common data file, 
-using conventions shared by standard pharmacometric softwares (see Section 
-\ref{editdata}), thus facilitating the transition from one platform to another.
-
-Version 1.1 of \scaRabee{} also includes population-specific tools which 
-allows simulations at the population or subject level, and model optimization at
-the population or subject level (standard two-stage analysis). This version also
-introduces a direct drig search feature to facilitate the identification of
-initial parameter estimates for population analysis inside or outside 
-\scaRabee{}.
+Version 1.1-2 introduces minor changes to \scaRabee{} related primarily to the
+solver of delay differential equation. The \code{dde} solver from the 
+\pkg{PBSddesolve} package was replaced by the \code{dede} solver from the 
+\pkg{deSolve} package, which is more stable for large and complex model and 
+permits easier handling of discontinuities. A bug is the handling of dosing 
+history is also fix in this version.
 
 \subsection{How to obtain scaRabee}
 \scaRabee{} is available at the Comprehensive R Archive Network and also at
@@ -735,7 +720,9 @@ the integration of the system of differential equations. The parameters
 available to users within the \$OUTPUT block are:
 \begin{itemize}
   \item{the primary parameters,}
-  \item{the derived parameters, and}
+  \item{the derived parameters,}
+  \item{\emph{times}, the vector of unique times of observations (or simulated 
+    observations), and}
   \item{\emph{f}, the \(s \times{} m_{ij}\) matrix of system state 
     predictions, where \(m_{ij}\) is the total number of observations in the 
     \(j^{th}\) subproblem for the \(i^{th}\) subject.}
@@ -846,13 +833,7 @@ explain what and how variable(s) should be defined.
     evaluations during an estimation run. Both must be scalar integers. The 
     default values are 500 and 5000, which should typically allow user's
     problem to converge to a stable point of the search space.}
-  \item{Lines 53-54: \code{dde.options} is a list with two levels, \code{dt} and
-    \code{hbsize}, defining the step of integration and the size of the history 
-    buffer for the solver of delay differential equations. Both must be scalar 
-    numeric values, although \code{hbsize} must be an integer. These options are
-    only shown when the \code{scarabee.new} was called using the 'dde' template.}
-  \item{Lines 54-55 (or Lines 58-59 when the \code{scarabee.new} was called
-    using the 'dde' template): the \code{npts} and \code{alpha} are variables 
+  \item{Lines 54-55: the \code{npts} and \code{alpha} are variables 
     specific to direct grid search runs. \code{npts} must be an integer greater 
     than 2 and defines the number of points that the grid should contain per 
     dimension (\emph{i.e} variable model parameter). \code{alpha} must be a 
@@ -1053,33 +1034,6 @@ the system. Users are thus advised to set the time of pre-dose samples slightly
 before the time of the boluses, to ensure that those samples are handled as 
 pre-dose and not post-dose samples.
 
-The \code{dde} solver used for models defined with delay differential equations
-recognized discontinuous events as being part of the overall integration problem.
-Therefore, there is no need to split the global itegration interval. 
-Discontinuous events are implemented via its \code{switchfunc} and 
-\code{mapfunc} arguments, which are set to the \code{dde.switch} and 
-\code{dde.map} functions within the context of \code{dde.model}. Briefly, 
-discontinuous events are detected by \code{dde.switch} and take place at times 
-\code{t} where:
-\begin{displaymath}
-  \left\{
-    \begin{array}{l}
-      dde.switch(t)=0\\
-      \frac{\displaystyle \partial dde.switch}{\displaystyle \partial t}<0
-    \end{array} \right.
-\end{displaymath}
-Bolus events are detected in the data file and implementing using a piecewise
-linear signal for the switch function. The \code{get.switch.vectors} function
-allows the creation of a "matrix" of signal values (1 or -1) symmetrically
-around the known bolus times. Then the \code{approx} function is used within
-\code{dde.switch} to interpolate the signal between those reference points: at
-bolus times, the interpolated signal is 0 and has a negative slope. The addition
-of amounts to the system states is actually performed in \code{dde.map}. Overall,
-all model predictions made at or extremelly close to the time of a bolus assume 
-that this bolus has entered the system. The user is thus advised to set the time 
-of pre-dose samples slightly before the time of the boluses, to ensure that 
-those samples are handled as pre-dose and not post-dose samples.
-
 \paragraph{Infusion inputs\\[3mm]}
 The reduction from multiple data files to a single one introduced in the 
 version 1.1-0 of \scaRabee{} resulted in major modifications in the automated
@@ -1127,7 +1081,7 @@ stop before the last observation. State 2 only receives a bolus dose at time
 states (top graphs), as well as the accumulation of the drug in both states
 (bottom graphs).
 \begin{center}
-  \includegraphics{deinputs.png} %[width=50mm,height=50mm]
+  \includegraphics[scale=0.8]{deinputs.png}
 \end{center}
 
 \subsection{Implementation of dosing history for model defined with algebraic
@@ -1184,7 +1138,7 @@ maximum inhibition factor, and \(IC_{50}\) the half-inhibitory concentration.
 
 Note that because this is a simulation, there is no need for a \$VARIANCE block.
 
-\subsection{2: Simulation of inputs into a model defined with ordinary
+\subsection{Example 2: Simulation of inputs into a model defined with ordinary
     differential equations}
 This example uses a model defined by a system of 2 ordinary differential 
 equations to illustrate how inputs are automatically assigned and scaled to 
@@ -1356,7 +1310,7 @@ estimates.
 \end{figure}
 \begin{figure}[h!]
   \begin{center}
-  \includegraphics[angle=-90, trim=25mm 25mm 25mm 90mm,clip]{scaRabee_network_2.pdf}
+  \includegraphics[angle=-90, trim=25mm 25mm 25mm 25mm,clip]{scaRabee_network_2.pdf}
     \caption{Map of the functions distributed with scaRabee (2/2)}
     \label{scaRabeemap2}
   \end{center}
@@ -1379,6 +1333,7 @@ estimates.
 \input{fitmle.cov.tex}
 \input{fitmle.tex}
 \input{get.cov.matrix.tex}
+\input{get.events.tex}
 \input{get.layout.tex}
 \input{get.param.data.tex}
 \input{get.parms.data.tex}

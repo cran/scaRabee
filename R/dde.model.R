@@ -27,8 +27,7 @@ dde.model <- function(parms=NULL,
                       covdata=NULL,
                       issim=0,
                       check=FALSE,
-                      ddedt=0.1,
-                      hbsize=10000){
+                      options=list(method='lsoda')){
   
   # Input validation
   if (check){
@@ -43,16 +42,6 @@ dde.model <- function(parms=NULL,
     
     if (length(xdata)<2)
       stop('xdata argument must contain at least 2 elements.')
-    
-    if (!is.null(ddedt)){
-      if (!(is.numeric(ddedt) && ddedt>0))
-        stop('ddedt argument is not numeric or not positive')
-    }
-    
-    if (!is.null(hbsize)){
-      if (!(is.numeric(hbsize) && hbsize>0))
-        stop('hbsize argument is not numeric or not positive')
-    }
   }
   
   # Sort dosing by time
@@ -103,8 +92,11 @@ dde.model <- function(parms=NULL,
     }
     xdata <- sort(unique(c(xdata, obst)))
     xdata.ori <- xdata
-    
   }
+  
+  # Extract method, and other options from options
+  method <- options$method
+  options$method <- NULL
   
   # Define initial conditions
   ic <- init.cond(parms=parms,
@@ -120,16 +112,17 @@ dde.model <- function(parms=NULL,
                          ic=ic,
                          check=check)
   
+  # Determine system events
+  events <- get.events(bolus=bolus,
+                       scale=scale)
+  
   # Get the delay parameters
   lags <- dde.lags(parms=parms,
                    derparms=derparms,
                    codelags=code$lag,
                    check=check)
   
-  # Get vectors for switch functions
-  switch.vectors <- get.switch.vectors(dosing=dosing)
-  
-  # Builds parameters list parm.list for integration
+  # Build parameters list parm.list for integration
   parm.list <- list(parms=parms,
                     derparms=derparms,
                     lags=lags,
@@ -140,43 +133,51 @@ dde.model <- function(parms=NULL,
                     xdata=xdata,
                     covdata=covdata,
                     scale=scale,
-                    times=switch.vectors$times,
-                    signal=switch.vectors$signal,
                     ic=ic,
                     check=check)
   
   # Check dde system
   if (check){
-    sol <- dde(y=init.update(a=ic,
-                             t=xdata[1],
-                             dosing=dosing,
-                             scale=scale),
-               times=c(0,0.1),
-               func=dde.syst,
-               parms=parm.list,
-               switchfunc=dde.switch,
-               mapfunc=dde.map,
-               dt=ifelse(is.null(ddedt),
-                 10^(floor(log10(switch.vectors$delta))-2),
-                 ddedt),
-               hbsize=hbsize)
+    if (dim(events)[1]>0){
+      sol <- do.call(dede,
+                     c(list(y=ic,
+                            times=c(0,0.1),
+                            func=dde.syst,
+                            parms=parm.list,
+                            events=list(data=events)),
+                       method=method,
+                       options))
+    } else {
+      sol <- do.call(dede,
+                     c(list(y=ic,
+                          times=c(0,0.1),
+                          func=dde.syst,
+                          parms=parm.list),
+                       method=method,
+                       options))
+    }
     parm.list$check <- FALSE
   }
   
   # Solve DDE system (update initial conditions with bolus dosing if necessary
-  sol <- dde(y=init.update(a=ic,
-                           t=xdata[1],
-                           dosing=dosing,
-                           scale=scale),
-             times=xdata,
-             func=dde.syst,
-             parms=parm.list,
-             switchfunc=dde.switch,
-             mapfunc=dde.map,
-             dt=ifelse(is.null(ddedt),
-               10^(floor(log10(switch.vectors$delta))-2),
-               ddedt),
-             hbsize=hbsize)
+  if (dim(events)[1]>0){
+    sol <- do.call(dede,
+                   c(list(y=ic,
+                          times=xdata,
+                          func=dde.syst,
+                          parms=parm.list,
+                          events=list(data=events)),
+                     method=method,
+                     options))
+  } else {
+    sol <- do.call(dede,
+                   c(list(y=ic,
+                          times=xdata,
+                          func=dde.syst,
+                          parms=parm.list),
+                     method=method,
+                     options))
+  }
   
   # Define ouput from the system
   f <- de.output(f=transpose(as.matrix(sol)),
@@ -187,10 +188,7 @@ dde.model <- function(parms=NULL,
                  xdata=xdata)
   
   # Filter f to extract only time points in xdata.ori
-  f <- f[,match(xdata.ori,sol[,1])]
-  
-  if (size(f,1)==1 & size(f,2)>1)
-    f <- matrix(f,nrow=1)
+  f <- f[,match(xdata.ori,sol[,1]),drop=FALSE]
   
   # Re-attach evaluation times xdata for simulation run only
   if (issim > 0.5){

@@ -25,8 +25,7 @@ scarabee.analysis <- function(files=NULL,
                               estim.options=NULL,
                               npts=NULL,
                               alpha=NULL,
-                              dde.options=list(dt=0.1,
-                                               hbsize=10000)
+                              solver.options=list(method='lsoda')
                               ) {
   
   oldwd <- getwd()
@@ -109,26 +108,18 @@ scarabee.analysis <- function(files=NULL,
         stop('alpha cannot contain value(s) below 1.')
     }
     
-    # Check dde.options
-    if (is.null(dde.options)){
-      dt <- NULL
-      hbsize <- NULL
+    # Check solver.options
+    if (is.null(solver.options)){
+      solver.options <- list(method='lsoda')
     } else {
-      if (!(is.list(dde.options) && all(names(dde.options)==c('dt','hbsize'))))
-        stop('dde.options argument must be a list with 2 levels: dt and hbsize.')
+      if (!is.list(solver.options))
+        stop('solver.options argument must be a list.')
       
-      if (!is.null(dde.options$dt)){
-        if (!(is.numeric(dde.options$dt) && dde.options$dt>0))
-          stop('dde.options$dt argument is not numeric or not positive')
-      }
+      if (!'method'%in%names(solver.options))
+        stop('solver.options argument must contain a \'method\' level.')
       
-      if (!is.null(dde.options$hbsize)){
-        if (!(is.numeric(dde.options$hbsize) && dde.options$hbsize>0))
-        stop('dde.options$hbsize argument is not numeric or not positive')
-      }
-      
-      dt <- dde.options$dt
-      hbsize <- dde.options$hbsize
+      if (is.null(solver.options$method))
+      stop('method level of the solver.options argument cannot be NULL.')
       
     }
   ##############################################################################
@@ -176,13 +167,7 @@ scarabee.analysis <- function(files=NULL,
     problem$init      <- param
     problem$debugmode <- debugmode
     problem$modfun    <- code$template
-    problem$ddedt     <- NA
-    if(is.null(dt)){
-      problem[7] <- list(NULL)
-    } else {
-      problem[7] <- dt
-    }
-    problem$hbsize    <- hbsize
+    problem$solver.options <- solver.options
     
     # Divert the output if necessary
     if (!interactive())
@@ -217,8 +202,8 @@ scarabee.analysis <- function(files=NULL,
       # Check models for all subjects
       for (id in problem$data$ids){
         # Create subproblem for id
-        idproblem <- problem[c('code','method','init','debugmode','modfun','dt',
-                               'hbsize')]
+        idproblem <- problem[c('code','method','init','debugmode','modfun',
+                               'solver.options')]
         idproblem$data <- problem$data[[id]]
         
         # check model
@@ -241,8 +226,8 @@ scarabee.analysis <- function(files=NULL,
               sep='\n')
         
         # Create subproblem for id
-        idproblem <- problem[c('code','method','init','debugmode','modfun','dt',
-                               'hbsize')]
+        idproblem <- problem[c('code','method','init','debugmode','modfun',
+                               'solver.options')]
         idproblem$data <- problem$data[[id]]
         
         # parameter optimization

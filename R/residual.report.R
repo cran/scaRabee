@@ -40,8 +40,8 @@ residual.report <- function(problem=NULL,Fit=NULL,files=NULL){
   
   for (i in trts){
     # Creates subproblem
-    subproblem <- problem[c('code','method','init','debugmode','modfun','ddedt',
-                            'hbsize')]
+    subproblem <- problem[c('code','method','init','debugmode','modfun',
+                            'solver.options')]
     subproblem$data$xdata <- sort(unique(problem$data[[i]]$ana$TIME))
     ana.data <- problem$data[[i]]$ana
     subproblem$bolus <- problem$data[[i]]$bolus

@@ -26,7 +26,8 @@ ode.model <- function(parms=NULL,
                       xdata=NULL,
                       covdata=NULL,
                       issim=0,
-                      check=FALSE){
+                      check=FALSE,
+                      options=list(method='lsoda')){
   
   # Input validation
   if (check){
@@ -87,6 +88,10 @@ ode.model <- function(parms=NULL,
     
   }
   
+  # Extract method, and other options from options
+  method <- options$method
+  options$method <- NULL
+  
   # Define initial conditions
   ic <- init.cond(parms=parms,
                   derparms=derparms,
@@ -102,20 +107,22 @@ ode.model <- function(parms=NULL,
                          check=check)
   
   # Update initial conditions with bolus dosing if necessary
-  sol <- ode(y=ic,
-             times=tspan[,1],
-             func=ode.syst,
-             parms=parms,
-             method='lsoda',
-             derparms=derparms,
-             codeode=code$de,
-             dosing=dosing,
-             has.dosing=has.dosing,
-             dose.states=dose.states,
-             xdata=xdata,
-             covdata=covdata,
-             scale=scale,
-             check=check)
+  sol <- do.call(ode,
+                 c(list(y=ic,
+                        times=tspan[,1],
+                        func=ode.syst,
+                        parms=parms,
+                        derparms=derparms,
+                        codeode=code$de,
+                        dosing=dosing,
+                        has.dosing=has.dosing,
+                        dose.states=dose.states,
+                        xdata=xdata,
+                        covdata=covdata,
+                        scale=scale,
+                        check=check),
+                   method=method,
+                   options))
   
   ic  <- init.update(a=sol[sol[,1]==tspan[1,1],],
                      t=tspan[1,1],
@@ -141,20 +148,22 @@ ode.model <- function(parms=NULL,
     }
     
     # Evaluate the solution within the intervals and assumes no observation at bolus times
-    sol <- ode(y=ic,
-               times=eval.times,
-               func=ode.syst,
-               parms=parms,
-               method='lsoda',
-               derparms=derparms,
-               codeode=code$de,
-               dosing=dosing,
-               has.dosing=has.dosing,
-               dose.states=dose.states,
-               xdata=xdata,
-               covdata=covdata,
-               scale=scale,
-               check=FALSE)
+    sol <- do.call(ode,
+                   c(list(y=ic,
+                          times=eval.times,
+                          func=ode.syst,
+                          parms=parms,
+                          derparms=derparms,
+                          codeode=code$de,
+                          dosing=dosing,
+                          has.dosing=has.dosing,
+                          dose.states=dose.states,
+                          xdata=xdata,
+                          covdata=covdata,
+                          scale=scale,
+                          check=FALSE),
+                     method=method,
+                     options))
     
     # initialize states for next loop iteration
     if (i!=nintervals){

@@ -62,7 +62,7 @@ problem.eval <- function(subproblem=NULL,x=NULL,grid=FALSE,check=FALSE){
   }
   
   # Evaluate the full model function modfun
-  if (subproblem$modfun=='dde.model'){
+  if (subproblem$modfun%in%c('ode.model','dde.model')){
     fpred <- do.call(eval(parse(text=subproblem$modfun)),
                      list(parms=parms,
                           derparms=derparms,
@@ -72,8 +72,7 @@ problem.eval <- function(subproblem=NULL,x=NULL,grid=FALSE,check=FALSE){
                           xdata=subproblem$data$xdata,
                           covdata=subproblem$cov,
                           check=check,
-                          ddedt=subproblem$ddedt,
-                          hbsize=subproblem$hbsize))
+                          options=subproblem$solver.options))
   } else {
     fpred <- do.call(eval(parse(text=subproblem$modfun)),
                      list(parms=parms,

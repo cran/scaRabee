@@ -38,8 +38,7 @@
             covdata = NULL,
             issim = 0,
             check = FALSE,
-            ddedt = 0.1,
-            hbsize = 10000)
+            options = list(method='lsoda'))
 }
 \arguments{
   \item{parms}{A vector of primary parameters.}
@@ -60,17 +59,14 @@
   \item{issim}{An indicator for simulation or estimation runs.}
   \item{check}{An indicator whether checks should be performed to validate 
     function inputs.}
-  \item{ddedt}{A positive numeric scalar providing the step size for the solver 
-    of delay differential equations.}
-  \item{hbsize}{An integer scalar providing the size of the history buffer for
-    the solver of delay differential equations.}
+  \item{options}{A list of delay differential equation solver options. Currently
+    not modifiable by users.}
 }
 \details{
   \code{dde.model} evaluates the model for each treatment of each individual 
   contained in the dataset using, among other, the dedicated utility functions:
-  \code{dde.syst}, \code{dde.lags}, \code{dde.map}, \code{dde.switch}, 
-  \code{get.switch.vectors}. The actual evaluation of the system is performed 
-  by \code{dde} from the \pkg{PBSddesolving} package.
+  \code{dde.syst}, and \code{dde.lags}. The actual evaluation of the system is 
+  performed by \code{dede} from the \pkg{deSolve} package.
   
   \code{dde.model} also make use of utility functions which it shares with the 
   other system evaluation functions \code{explicit.model}, and \code{ode.model},
@@ -82,10 +78,8 @@
   Returns a matrix of system predictions.
 }
 \seealso{
-  \code{\link[PBSddesolve]{dde}},
+  \code{\link[deSolve]{dede}},
   \code{\link[scaRabee]{dde.syst}}, \code{\link[scaRabee]{dde.lags}}, 
-  \code{\link[scaRabee]{dde.map}}, \code{\link[scaRabee]{dde.switch}},
-  \code{\link[scaRabee]{get.switch.vectors}}, 
   \code{\link[scaRabee]{explicit.model}}, \code{\link[scaRabee]{ode.model}},
   \code{\link[scaRabee]{init.cond}}, \code{\link[scaRabee]{input.scaling}},
   \code{\link[scaRabee]{make.dosing}}, \code{\link[scaRabee]{init.update}},

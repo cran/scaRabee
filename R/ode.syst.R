@@ -62,7 +62,7 @@ ode.syst <- function(t=NULL,
   })
                       
   # Get the variable size info and does some comparisons
-  nstate <- dim(dadt)[2]
+  nstate <- dim(dadt)[1]
   
   # Initialize input
   input <- rep(0,nstate)

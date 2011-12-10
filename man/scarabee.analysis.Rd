@@ -40,8 +40,7 @@
                     estim.options = NULL,
                     npts = NULL,
                     alpha = NULL,
-                    dde.options=list(dt=0.1,
-                                     hbsize=10000))
+                    solver.options = list(method='lsoda'))
 }
 
 \arguments{
@@ -82,14 +81,8 @@
     \code{alpha} is a real number, representing the factor applied to the 
     initial estimates of the model parameters to determine the lower and upper 
     bounds to the grid search space.}
-  \item{dde.options}{A list with the following levels:\describe{
-    \item{ddedt}{A positive numeric scalar providing the step size for the 
-      solver of delay differential equations.}
-    \item{hbsize}{An integer scalar providing the size of the history buffer for
-      the solver of delay differential equations.}
-    }
-    This variable is ignored if the model file does not contain a $DDE tag.
-  }
+  \item{solver.options}{A list of differential equation solver options. 
+    Currently not modifiable by users.}
 }
 \author{
   Sebastien Bihorel (\email{sb.pmlab@gmail.com})

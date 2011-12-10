@@ -53,7 +53,7 @@ get.cov.matrix <- function(problem=NULL,Fit=NULL){
   for (i in trts){
     # Creates subproblem
     subproblem             <- problem[c('code','method','init','debugmode',
-                                        'modfun','ddedt','hbsize')]
+                                        'modfun','solver.options')]
     subproblem$data$xdata  <- sort(unique(problem$data[[i]]$ana$TIME))
     subproblem$data$data  <- problem$data[[i]]$ana
     subproblem$bolus <- problem$data[[i]]$bolus

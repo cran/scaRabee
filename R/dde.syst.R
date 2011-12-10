@@ -44,7 +44,7 @@ dde.syst <- function(t=NULL,
   ylag <- lapply(lags,
     function(x,...){
       if (t-x>=t0) {
-        pastvalue(t-x)
+        lagvalue(t-x)
       } else {
         ic
       }
@@ -64,7 +64,7 @@ dde.syst <- function(t=NULL,
   })
   
   # Get the variable size info and does some comparisons
-  nstate <- dim(dadt)[2]
+  nstate <- dim(dadt)[1]
   
   # Initialize input
   input <- rep(0,nstate)
@@ -91,6 +91,6 @@ dde.syst <- function(t=NULL,
   # Add the input to the ode system
   dadt <- dadt + input/dde.parms$scale
   
-  return(dadt)
+  return(list(c(dadt)))
   
 }

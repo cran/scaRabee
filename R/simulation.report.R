@@ -39,7 +39,7 @@ simulation.report <- function(problem=NULL,files=NULL){
     for (trt in as.character(trts)){
       # Create subproblem
       subproblem <- problem[c('code','method','init','debugmode','modfun',
-                              'ddedt','hbsize')]
+                              'solver.options')]
       subproblem$data$xdata  <- sort(unique(problem$data[[id]][[trt]]$ana$TIME))
       subproblem$cov <- problem$data[[id]][[trt]]$cov
       subproblem$bolus <- problem$data[[id]][[trt]]$bolus
@@ -71,7 +71,7 @@ simulation.report <- function(problem=NULL,files=NULL){
       } 
       
       # Evaluate the model given the parameter estimates
-      if (subproblem$modfun=='dde.model'){
+      if (subproblem$modfun%in%c('ode.model','dde.model')){
         fsim[[trt]] <- do.call(eval(parse(text=subproblem$modfun)),
                                list(parms=parms,
                                     derparms=derparms,
@@ -82,8 +82,7 @@ simulation.report <- function(problem=NULL,files=NULL){
                                     covdata=subproblem$cov,
                                     issim=issim,
                                     check=TRUE,
-                                    ddedt=subproblem$ddedt,
-                                    hbsize=subproblem$hbsize))
+                                    options=subproblem$solver.options))
       } else {
         fsim[[trt]] <- do.call(eval(parse(text=subproblem$modfun)),
                                list(parms=parms,

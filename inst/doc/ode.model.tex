@@ -19,7 +19,8 @@ directly by users
             xdata = NULL,
             covdata = NULL,
             issim = 0,
-            check = FALSE)
+            check = FALSE,
+            options = list(method='lsoda'))
 \end{verbatim}
 \end{Usage}
 %
@@ -43,6 +44,8 @@ being evaluated.
 \item[\code{issim}] An indicator for simulation or estimation runs.
 \item[\code{check}] An indicator whether checks should be performed to validate 
 function inputs.
+\item[\code{options}] A list of differential equation solver options. Currently
+not modifiable by users.
 \end{ldescription}
 \end{Arguments}
 %

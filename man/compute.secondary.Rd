@@ -66,9 +66,6 @@
           for a treatment and individual.}
         \item{trt}{the particular treatment identifier.}
       }}
-    \item{hbsize}{An integer scalar providing the size of the history buffer for
-      the solver of delay differential equations. This variable is ignored if
-      the model file does not contain a $DDE tag.}
     }
   }
   \item{x}{The vector of \emph{p} final parameter estimates.}
