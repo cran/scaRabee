@@ -1,4 +1,4 @@
-%Copyright (c) 2009-2011 Sebastien Bihorel
+%Copyright (c) 2009-2014 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -43,12 +43,6 @@
   If one or more user-defined parameters are found to use reserved names, the 
   run is stopped and the user is ask to update the name(s) of this(ese) 
   parameter(s).
-  
-  Furthermore, \code{scarabee.check.reserved} determines whether or not the list
-  of user-defined parameters include D1, D2, ..., D25, or R1, R2, ..., R25. Dn 
-  and Rn parameters relate to zero-order inputs into the n^th state of the system 
-  and represent the estimated duration and rate of these inputs 
-  be understood as the duration of any 
 }
 \author{
   Sebastien Bihorel (\email{sb.pmlab@gmail.com})

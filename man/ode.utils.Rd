@@ -26,7 +26,6 @@
            dosing = NULL,
            has.dosing = NULL,
            dose.states = NULL,
-           xdata = NULL,
            covdata = NULL,
            scale = NULL,
            check = FALSE)
@@ -54,7 +53,7 @@
                 codescale = NULL,
                 ic = NULL,
                 check = FALSE)
-  make.dosing(derparms = NULL,
+  make.dosing(allparms = NULL,
               bolus = NULL,
               infusion = NULL,
               check = FALSE)
@@ -92,9 +91,12 @@
     be assigned to a system state.}
   \item{dose.states}{A vector of integers, indicating in which system state one
     or more doses have to be assigned to.}
-  \item{xdata}{A vector of times at which the system is being evaluated.}
+  \item{covdata}{A matrix of covariate data extracted from the dataset.}
+  \item{scale}{A vector of system scale, typically returned by 
+    \code{input.scaling}}
   \item{check}{An indicator whether checks should be performed to validate 
      function inputs}
+  \item{xdata}{A vector of times at which the system is being evaluated.}
   \item{bolus}{bij x 4 data.frame providing the instantaneous inputs for a 
     treatment and individual.}
   \item{infusion}{fij x (4+c) data.frame providing the zero-order inputs for a
@@ -104,16 +106,14 @@
     the same number of rows as in \code{dadt} defined in the $ODE or $DDE block.}
   \item{codeoutput}{The content of the R code specified within the $OUTPUT block 
     in the model file.}
-  \item{covdata}{A matrix of covariate data extracted from the dataset.}
   \item{codederiv}{The content of the R code specified within the $DERIVED block 
     in the model file.}
   \item{codeic}{The content of the R code specified within the $IC block in the 
     model file.}
   \item{codescale}{The content of the R code specified within the $SCALE block 
     in the model file.}
-  \item{ic}{A vector of initial conditions, typically returned by \code{init}}
-  \item{scale}{A vector of system scale, typically returned by 
-    \code{input.scaling}}
+  \item{ic}{A vector of initial conditions, typically returned by \code{init.cond}}
+  \item{allparms}{A vector of parameters (primary+derived).}
   \item{a}{A vector of system state values, similar to \code{y}.}
 }
 \details{
@@ -132,7 +132,8 @@
   $OUTPUT block and, thus, defines the output of the model.
 
   \code{derived.parms} is the function which evaluates the code provided in the
-  $DERIVED block and calculate derived parameters.
+  $DERIVED block and calculate derived parameters. It prevents primary 
+  parameters and covariates from being edited.
 
   \code{init.cond} is the function which evaluates the code provided in the $IC
   block, and, thus, defines the initial conditions of the system.
@@ -142,7 +143,8 @@
   
   \code{make.dosing} is the function which processes the instantaneous and 
   zero-order inputs provided in the dataset and creates the \code{dosing} 
-  object.
+  object. This function also implements absorption lags if the user included
+  ALAGx parameters in \code{parms} or \code{derpamrs}.
   
   \code{init.update} is a function that updates the system states at the 
   beginning of each integration interval created by \code{create.intervals} to 

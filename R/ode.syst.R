@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -26,7 +26,6 @@ ode.syst <- function(t=NULL,
                      dosing=NULL,
                      has.dosing=NULL,
                      dose.states=NULL,
-                     xdata=NULL,
                      covdata=NULL,
                      scale=NULL,
                      check=FALSE){
@@ -59,8 +58,14 @@ ode.syst <- function(t=NULL,
     eval(parse(text=codeode))
     
     return(dadt)
+    
   })
-                      
+  
+  if (check){
+    if (is.null(dim(dadt)[1]))
+      stop('dadt in $ODE is not a matrix of dimension (1 x s).')
+  }
+  
   # Get the variable size info and does some comparisons
   nstate <- dim(dadt)[1]
   
@@ -84,6 +89,6 @@ ode.syst <- function(t=NULL,
   # Add the input to the ode system
   dadt <- dadt + input/scale
   
-  return(list(dadt))
+  return(list(c(dadt)))
   
 }

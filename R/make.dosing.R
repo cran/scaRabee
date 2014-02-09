@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -18,7 +18,7 @@
 #    along with scaRabee.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-make.dosing <- function(derparms=NULL,
+make.dosing <- function(allparms=NULL,
                         bolus=NULL,
                         infusion=NULL,
                         check=FALSE){
@@ -28,25 +28,18 @@ make.dosing <- function(derparms=NULL,
     if (is.null(bolus) | is.null(infusion))
       stop('bolus or infusion argument is NULL.')
     
-    if (size(infusion,1)>=1){ 
-      if (any(c(-1,-2)%in%infusion$RATE) &
-          length(derparms)==0)
-        stop(paste('derparms argument (derived parameters) cannot be NULL when',
-                   'the rate or the\n  duration of infusion(s) are estimated.'))
-    }
-    
     # Check infusion and bolus
     if (any(infusion$RATE==-1)){
       # Check for expected parameters
       cmts <- unique(infusion[which(infusion$RATE==-1),'CMT'])
       expected <- paste('R',cmts,sep='')
-      if (!all(exists(expected))){
-        missings <- expected[which(!exists(expected))]
-        stop(paste('variable(s) expected from dosing history not defined:\n  ',
+      missings <- expected[which(!expected%in%names(allparms))]
+      if (length(missings)!=0){
+        stop(paste('parameter(s) expected from dosing history not defined:\n  ',
                    paste(missings,collapse=', '),sep=''))
       }
       for (cmt in cmts){
-        rcmt <- paste('R',cmt,sep='')
+        rcmt <- paste('allparms$R',cmt,sep='')
         # Check dimension of expected parameter
         if (size(eval(parse(text=rcmt)),1)>1){
           stop(paste(rcmt,' variable has invalid dimensions.',sep=''))
@@ -55,18 +48,18 @@ make.dosing <- function(derparms=NULL,
           stop(paste(rcmt,' variable has invalid dimensions.',sep=''))
         }
       }
-    } else if (any(infusion$rate==-2)) {
+    } else if (any(infusion$RATE==-2)) {
       # Check for expected parameters
       cmts <- unique(infusion[which(infusion$RATE==-2),'CMT'])
       expected <- paste('D',cmts,sep='')
-      if (!all(exists(expected))){
-        missings <- expected[which(!exists(expected))]
-        stop(paste('variable(s) expected from dosing history not defined:\n  ',
+      missings <- expected[which(!expected%in%names(allparms))]
+      if (length(missings)!=0){
+        stop(paste('parameter(s) expected from dosing history not defined:\n  ',
                    paste(missings,collapse=', '),sep=''))
       }
       
       for (cmt in cmts){
-        dcmt <- paste('D',cmt,sep='')
+        dcmt <- paste('allparms$D',cmt,sep='')
         # Check dimension of expected parameter
         if (size(eval(parse(text=dcmt)),1)>1){
           stop(paste(dcmt,' variable has invalid dimensions.',sep=''))
@@ -83,7 +76,7 @@ make.dosing <- function(derparms=NULL,
     cmts <- unique(infusion[which(infusion$RATE==-1),'CMT'])
     
     for (cmt in cmts){
-      rcmt <- paste('derparms$R',cmt,sep='')
+      rcmt <- paste('allparms$R',cmt,sep='')
       index <- which(infusion$CMT==cmt)
       if (length(eval(parse(text=rcmt)))==1){
         infusion$RATE[index] <- eval(parse(text=rcmt))
@@ -95,7 +88,7 @@ make.dosing <- function(derparms=NULL,
     cmts <- unique(infusion[which(infusion$RATE==-2),'CMT'])
     
     for (cmt in cmts){
-      dcmt <- paste('derparms$D',cmt,sep='')
+      dcmt <- paste('allparms$D',cmt,sep='')
       index <- which(infusion$CMT==cmt)
       if (length(eval(parse(text=dcmt)))==1){
         infusion$RATE[index] <- infusion$AMT[index]/eval(parse(text=dcmt))
@@ -146,6 +139,19 @@ make.dosing <- function(derparms=NULL,
     }
     dosing <- rbind(dosing,tmp.data)
   }
+  
+  # Add lag-times on dosing events if necessary
+  abslags <- allparms[grep('^ALAG[[:digit:]]*$',names(allparms))]
+  if (length(abslags)>0){
+    cmtlags <- gsub('ALAG','',names(abslags))
+    for (cmtlag in cmtlags){
+      index <- which(dosing$CMT==cmtlag)
+      dosing$TIME[index] <- dosing$TIME[index] + 
+        eval(parse(text=paste('allparms$ALAG',cmtlag,sep='')))
+    }
+  }
+  
+  # Re-order dosing
   dosing <- dosing[order(dosing$TIME,
                          dosing$CMT,
                          dosing$TYPE),]

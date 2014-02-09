@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -278,10 +278,10 @@ scarabee.read.data <- function(files=NULL, method=NULL){
       uniqueTRTs <- unique(id.ana.data$TRT)
       
       for (treat in uniqueTRTs){
-        
+        browser()
         out.data[[as.character(id)]][[as.character(treat)]]$ana <-
-          subset(id.ana.data, TRT==treat, select=names(id.ana.data)[-c(1,2)])
-        tmp <- subset(id.cov.data, TRT==treat, select=names(id.cov.data))
+          id.ana.data[which(id.ana.data$TRT==treat), names(id.ana.data)[-c(1,2)]]
+        tmp <- id.cov.data[which(id.cov.data$TRT==treat),names(id.cov.data)]
         names(tmp) <- toupper(names(tmp))
         out.data[[as.character(id)]][[as.character(treat)]]$cov <- tmp
         out.data[[as.character(id)]][[as.character(treat)]]$trt <- treat
@@ -408,8 +408,8 @@ scarabee.read.data <- function(files=NULL, method=NULL){
                    treat, '.',sep=''))
       }
       out.data[[1]][[as.character(treat)]]$ana <-
-        subset(ana.data, TRT==treat, select = names(ana.data)[-c(1,2)])
-      tmp <- subset(cov.data, TRT==treat, select = names(cov.data))
+        ana.data[which(ana.data$TRT==treat), names(ana.data)[-c(1,2)]]
+      tmp <- cov.data[which(cov.data$TRT==treat), names(cov.data)]
       names(tmp) <- toupper(names(tmp))
       out.data[[1]][[as.character(treat)]]$cov <- tmp
       out.data[[1]][[as.character(treat)]]$trt <- treat

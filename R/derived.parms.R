@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -37,6 +37,23 @@ derived.parms <- function(parms=NULL,
     if (length(codederiv)>1)
       stop('codederiv argument must have a length of 1.')
   }
+  
+  # Prevent modification of parameters and covariates
+  redef.parms <- any(unlist(sapply(
+    names(parms),
+    function(x,codederiv) {grep(paste(x,"[[:space:]]*[=<]",sep=""),codederiv)},
+    codederiv)))
+  
+  redef.covdata <- any(unlist(sapply(
+    names(covdata),
+    function(x,codederiv) {grep(paste(x,"[[:space:]]*[=<]",sep=""),codederiv)},
+    codederiv)))
+  
+  if (redef.parms)
+    stop('Parameters cannot be modified in $DERIVED.')
+  
+  if (redef.covdata)
+    stop('Covariates cannot be modified in $DERIVED.')
   
   # Evaluation of codederiv
   if (is.null(covdata)){

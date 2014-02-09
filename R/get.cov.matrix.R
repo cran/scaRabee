@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -135,7 +135,7 @@ get.cov.matrix <- function(problem=NULL,Fit=NULL){
   
   # Gets estimated parameter reordered values, names, type
   estimordered <- data.frame(names=estparam$names[indices],
-                             value=Fit$estimations[indices,1],
+                             value=Fit$estimations[indices],
                              type =estparam$type[indices],
                              stringsAsFactors=FALSE)
   

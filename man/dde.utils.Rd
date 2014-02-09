@@ -1,4 +1,4 @@
-%Copyright (c) 2009-2011 Sebastien Bihorel
+%Copyright (c) 2009-2014 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -31,7 +31,18 @@
 \usage{
   dde.syst(t = NULL,
            y = NULL,
-           dde.parms = NULL)
+           ic = NULL,
+           parms = NULL,
+           derparms = NULL,
+           delags = NULL,
+           codedde = NULL,
+           dosing = NULL,
+           has.dosing = NULL,
+           dose.states = NULL,
+           xdata = NULL,
+           covdata = NULL,
+           scale = NULL,
+           check = FALSE)
   dde.lags(parms = NULL,
            derparms = NULL,
            codelags = NULL,
@@ -40,36 +51,44 @@
 \arguments{
   \item{t}{A scalar or a vector of numerical time values.}
   \item{y}{A vector of system state values.}
-  \item{dde.parms}{A list of parameters with the following levels:
-    \describe{
-      \item{parms}{See below}
-      \item{derparms}{See below}
-      \item{lags}{A vector of delay parameters, typically returned by 
-        \code{dde.lags}.}
-      \item{codedde}{The content of the R code specified within the $DDE block 
-        in the model file.}
-      \item{dosing}{See below}
-      \item{xdata}{A vector of times at which the system is being evaluated.}
-      \item{covdata}{A matrix of covariate data extracted from the dataset.}
-      \item{scale}{A vector of system scale, typically returned by 
-        \code{input.scaling}}
-      \item{times}{A vector of times need by \code{dde.switch} to determine
-        the system switches}
-      \item{signal}{A vector of signals need by \code{dde.switch} to determine
-        the system switches}
-      \item{ic}{A vector of initial conditions, typically returned by 
-        \code{init}}
-      \item{check}{An indicator whether checks should be performed to validate 
-        function inputs}
-    }
-  }
+  \item{ic}{A vector of initial conditions, typically returned by 
+    \code{init.cond}.}
   \item{parms}{A vector of primary parameters.}
   \item{derparms}{A list of derived parameters, specified in the $DERIVED block
     of code.}
+  \item{delags}{A vector of delay parameters, typically returned by 
+    \code{dde.lags}.}
+  \item{codedde}{The content of the R code specified within the $DDE block in 
+    the model file.}
+  \item{dosing}{A data.frame of dosing information created by \code{make.dosing}
+    from instantaneous and zero-order inputs into the system and containing the 
+    following columns: \describe{
+      \item{TIME}{Dosing event times.}
+      \item{CMT}{State where the input should be assigned to.}
+      \item{AMT}{Amount that should be assigned to system \code{state} at the
+        corresponding \code{TIME}.}
+      \item{RATE}{Rate of input that should be assigned to system \code{CMT} at 
+        the corresponding \code{TIME}. See 
+        \code{vignette('scaRabee',package='scaRabee')} for more details about
+        the interpolation of the input rate at time not specified in
+        \code{dosing}.}
+      \item{TYPE}{An indicator of the type of input. \code{TYPE} is set to 1 if
+        the record in \code{dosing} correspond an original bolus input; it is 
+        set to 0 otherwise.}
+    }
+  }
+  \item{has.dosing}{A logical variable, indicating whether any input has to
+    be assigned to a system state.}
+  \item{dose.states}{A vector of integers, indicating in which system state one
+    or more doses have to be assigned to.}
+  \item{xdata}{A vector of times at which the system is being evaluated.}
+  \item{covdata}{A matrix of covariate data extracted from the dataset.}
+  \item{scale}{A vector of system scale, typically returned by 
+    \code{input.scaling}}
+  \item{check}{An indicator whether checks should be performed to validate 
+     function inputs}
   \item{codelags}{The content of the R code specified within the $LAGS block in
     the model file.}
-  \item{check}{An indicator whether checks should be performed to validate 
-    function inputs.}
 }
 \details{
   \code{dde.syst} is the function which actually evaluates the system of delay

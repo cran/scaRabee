@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -49,7 +49,7 @@ dde.model <- function(parms=NULL,
   infusion <- infusion[order(infusion[,1]),]
   
   # Process dosing information
-  dosing <- make.dosing(derparms=derparms,
+  dosing <- make.dosing(allparms=c(derparms,as.list(parms)),
                         bolus=bolus,
                         infusion=infusion,
                         check=check)
@@ -68,9 +68,6 @@ dde.model <- function(parms=NULL,
     xdata.ori <- xdata
     if (tspan[1,1]<xdata[1]){
       xdata <- c(tspan[1,1],xdata)
-      is.dosing.mintime <- TRUE
-    } else {
-      is.dosing.mintime <- FALSE
     }
     
   } else {
@@ -122,20 +119,6 @@ dde.model <- function(parms=NULL,
                    codelags=code$lag,
                    check=check)
   
-  # Build parameters list parm.list for integration
-  parm.list <- list(parms=parms,
-                    derparms=derparms,
-                    lags=lags,
-                    codedde=code$de,
-                    dosing=dosing,
-                    has.dosing=has.dosing,
-                    dose.states=dose.states,
-                    xdata=xdata,
-                    covdata=covdata,
-                    scale=scale,
-                    ic=ic,
-                    check=check)
-  
   # Check dde system
   if (check){
     if (dim(events)[1]>0){
@@ -143,20 +126,42 @@ dde.model <- function(parms=NULL,
                      c(list(y=ic,
                             times=c(0,0.1),
                             func=dde.syst,
-                            parms=parm.list,
+                            ic=ic,
+                            parms=parms,
+                            derparms=derparms,
+                            delags=lags,
+                            codedde=code$de,
+                            dosing=dosing,
+                            has.dosing=has.dosing,
+                            dose.states=dose.states,
+                            xdata=xdata,
+                            covdata=covdata,
+                            scale=scale,
+                            check=check,
                             events=list(data=events)),
                        method=method,
                        options))
     } else {
       sol <- do.call(dede,
                      c(list(y=ic,
-                          times=c(0,0.1),
-                          func=dde.syst,
-                          parms=parm.list),
+                            times=c(0,0.1),
+                            func=dde.syst,
+                            parms=parms,
+                            ic=ic,
+                            derparms=derparms,
+                            delags=lags,
+                            codedde=code$de,
+                            dosing=dosing,
+                            has.dosing=has.dosing,
+                            dose.states=dose.states,
+                            xdata=xdata,
+                            covdata=covdata,
+                            scale=scale,
+                            check=check),
                        method=method,
                        options))
     }
-    parm.list$check <- FALSE
+    check <- FALSE
   }
   
   # Solve DDE system (update initial conditions with bolus dosing if necessary
@@ -165,7 +170,18 @@ dde.model <- function(parms=NULL,
                    c(list(y=ic,
                           times=xdata,
                           func=dde.syst,
-                          parms=parm.list,
+                          ic=ic,
+                          parms=parms,
+                          derparms=derparms,
+                          delags=lags,
+                          codedde=code$de,
+                          dosing=dosing,
+                          has.dosing=has.dosing,
+                          dose.states=dose.states,
+                          xdata=xdata,
+                          covdata=covdata,
+                          scale=scale,
+                          check=check,
                           events=list(data=events)),
                      method=method,
                      options))
@@ -174,7 +190,18 @@ dde.model <- function(parms=NULL,
                    c(list(y=ic,
                           times=xdata,
                           func=dde.syst,
-                          parms=parm.list),
+                          ic=ic,
+                          parms=parms,
+                          derparms=derparms,
+                          delags=lags,
+                          codedde=code$de,
+                          dosing=dosing,
+                          has.dosing=has.dosing,
+                          dose.states=dose.states,
+                          xdata=xdata,
+                          covdata=covdata,
+                          scale=scale,
+                          check=check),
                      method=method,
                      options))
   }

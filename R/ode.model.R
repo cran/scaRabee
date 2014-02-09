@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -49,7 +49,7 @@ ode.model <- function(parms=NULL,
   infusion <- infusion[order(infusion[,1]),]
   
   # Process dosing information
-  dosing <- make.dosing(derparms=derparms,
+  dosing <- make.dosing(allparms=c(derparms,as.list(parms)),
                         bolus=bolus,
                         infusion=infusion,
                         check=check)
@@ -117,7 +117,6 @@ ode.model <- function(parms=NULL,
                         dosing=dosing,
                         has.dosing=has.dosing,
                         dose.states=dose.states,
-                        xdata=xdata,
                         covdata=covdata,
                         scale=scale,
                         check=check),
@@ -158,7 +157,6 @@ ode.model <- function(parms=NULL,
                           dosing=dosing,
                           has.dosing=has.dosing,
                           dose.states=dose.states,
-                          xdata=xdata,
                           covdata=covdata,
                           scale=scale,
                           check=FALSE),

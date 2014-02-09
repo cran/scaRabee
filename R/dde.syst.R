@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -20,26 +20,37 @@
 
 dde.syst <- function(t=NULL,
                      y=NULL,
-                     dde.parms=NULL){
-  
+                     ic=NULL,
+                     parms=NULL,
+                     derparms=NULL,
+                     delags=NULL,
+                     codedde=NULL,
+                     dosing=NULL,
+                     has.dosing=NULL,
+                     dose.states=NULL,
+                     xdata=NULL,
+                     covdata=NULL,
+                     scale=NULL,
+                     check=FALSE){
+
   # Input validation
-  if (dde.parms$check){
-    if (is.null(dde.parms$codedde))
+  if (check){
+    if (is.null(codedde))
       stop('codedde argument is NULL.')
     
-    if (!is.character(dde.parms$codedde))
+    if (!is.character(codedde))
       stop('codedde argument must be an object of class \'character\'')
     
-    if (length(dde.parms$codedde)>1)
+    if (length(codedde)>1)
       stop('codedde argument must have a length of 1.')
   }
   
   # Evaluates system at past times
-  lags <- dde.parms$lags
+  lags <- delags
   
-  names(lags) <- paste('alag',names(lags),sep='.')
-  t0 <- dde.parms$xdata[1]
-  ic <- dde.parms$ic
+  names(lags) <- paste('alag',names(delags),sep='.')
+  t0 <- xdata[1]
+  ic <- ic
   
   ylag <- lapply(lags,
     function(x,...){
@@ -53,16 +64,22 @@ dde.syst <- function(t=NULL,
   rm(lags,t0,ic)
   
   # Evaluation of codedde
-  cparms <- c(y,ylag,dde.parms$parms,dde.parms$derparms,dde.parms$lags,
-              dde.parms$covdata)
+  cparms <- c(y,ylag,parms,derparms,delags,
+              covdata)
   
   dadt <- with(cparms,{
     
-    eval(parse(text=dde.parms$codedde))
+    eval(parse(text=codedde))
     
     return(dadt)
+    
   })
-  
+ 
+  if (check){
+    if (is.null(dim(dadt)[1]))
+      stop('dadt in $DDE is not a matrix of dimension (1 x s).')
+  }
+ 
   # Get the variable size info and does some comparisons
   nstate <- dim(dadt)[1]
   
@@ -70,9 +87,9 @@ dde.syst <- function(t=NULL,
   input <- rep(0,nstate)
   
   # Build input
-  if (dde.parms$has.dosing){
-    for (i in dde.parms$dose.states){
-      stdosing <- dde.parms$dosing[dde.parms$dosing[,2]==i,]
+  if (has.dosing){
+    for (i in dose.states){
+      stdosing <- dosing[dosing[,2]==i,]
       input[i] <- approx(x=stdosing[,1],
                          y=stdosing[,4],
                          xout=t,
@@ -83,13 +100,13 @@ dde.syst <- function(t=NULL,
     }
   }
   
-  if (dde.parms$check){
-    if (dim(dadt)[1]!=length(dde.parms$scale))
+  if (check){
+    if (dim(dadt)[1]!=length(scale))
       stop('dadt must have the same dimensions as init and scale.')
   }
   
   # Add the input to the ode system
-  dadt <- dadt + input/dde.parms$scale
+  dadt <- dadt + input/scale
   
   return(list(c(dadt)))
   

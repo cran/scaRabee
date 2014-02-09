@@ -1,3 +1,15 @@
+2014/02/08 Sebastien Bihorel <sb.pmlab@gmail.com>
+  * Change vignette data location to comply to R 3.0 requirements
+  
+  * Add NAMESPACE
+  
+  * Minor modification to accommodate upgrade in neldermead packages
+  
+  * Added protection of parameter variables so they cannot be modified in 
+    $DERIVED
+  
+  * Deprecated functions: zzz.R
+
 2011/12/10 Sebastien Bihorel <sb.pmlab@gmail.com>
   * Switch from dde function (PBSddesolve package) to dede function (deSolve
   package) to integrate of delayed differential equations. Dependency to 

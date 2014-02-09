@@ -1,4 +1,4 @@
-%Copyright (c) 2009-2011 Sebastien Bihorel
+%Copyright (c) 2009-2014 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -32,8 +32,8 @@
 \tabular{ll}{
 Package: \tab scaRabee\cr
 Type: \tab Package\cr
-Version: \tab 1.1-2\cr
-Date: \tab 2011-12-10\cr
+Version: \tab 1.1-3\cr
+Date: \tab 2014-02-09\cr
 License: \tab GPL-v3 \cr
 LazyLoad: \tab yes
 }

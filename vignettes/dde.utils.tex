@@ -1,0 +1,99 @@
+\inputencoding{utf8}
+\HeaderA{dde.utils}{Utility Functions for Delay Differential Equation Systems}{dde.utils}
+\aliasA{dde.lags}{dde.utils}{dde.lags}
+\aliasA{dde.syst}{dde.utils}{dde.syst}
+\keyword{method}{dde.utils}
+%
+\begin{Description}\relax
+This is a collection of utility functions called by \code{dde.model} when 
+a model defined by delay differential equations is evaluated. None of these 
+functions is typically called directly by users.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+  dde.syst(t = NULL,
+           y = NULL,
+           ic = NULL,
+           parms = NULL,
+           derparms = NULL,
+           delags = NULL,
+           codedde = NULL,
+           dosing = NULL,
+           has.dosing = NULL,
+           dose.states = NULL,
+           xdata = NULL,
+           covdata = NULL,
+           scale = NULL,
+           check = FALSE)
+  dde.lags(parms = NULL,
+           derparms = NULL,
+           codelags = NULL,
+           check = FALSE)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{t}] A scalar or a vector of numerical time values.
+\item[\code{y}] A vector of system state values.
+\item[\code{ic}] A vector of initial conditions, typically returned by 
+\code{init.cond}.
+\item[\code{parms}] A vector of primary parameters.
+\item[\code{derparms}] A list of derived parameters, specified in the \$DERIVED block
+of code.
+\item[\code{delags}] A vector of delay parameters, typically returned by 
+\code{dde.lags}.
+\item[\code{codedde}] The content of the R code specified within the \$DDE block in 
+the model file.
+\item[\code{dosing}] A data.frame of dosing information created by \code{make.dosing}
+from instantaneous and zero-order inputs into the system and containing the 
+following columns: \begin{description}
+
+\item[TIME] Dosing event times.
+\item[CMT] State where the input should be assigned to.
+\item[AMT] Amount that should be assigned to system \code{state} at the
+corresponding \code{TIME}.
+\item[RATE] Rate of input that should be assigned to system \code{CMT} at 
+the corresponding \code{TIME}. See 
+\code{vignette('scaRabee',package='scaRabee')} for more details about
+the interpolation of the input rate at time not specified in
+\code{dosing}.
+\item[TYPE] An indicator of the type of input. \code{TYPE} is set to 1 if
+the record in \code{dosing} correspond an original bolus input; it is 
+set to 0 otherwise.
+
+\end{description}
+
+
+\item[\code{has.dosing}] A logical variable, indicating whether any input has to
+be assigned to a system state.
+\item[\code{dose.states}] A vector of integers, indicating in which system state one
+or more doses have to be assigned to.
+\item[\code{xdata}] A vector of times at which the system is being evaluated.
+\item[\code{covdata}] A matrix of covariate data extracted from the dataset.
+\item[\code{scale}] A vector of system scale, typically returned by 
+\code{input.scaling}
+\item[\code{check}] An indicator whether checks should be performed to validate 
+function inputs
+\item[\code{codelags}] The content of the R code specified within the \$LAGS block in
+the model file.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}\relax
+\code{dde.syst} is the function which actually evaluates the system of delay
+differential equations specified in the \$DDE block.
+
+\code{dde.lags} is the function which evaluates the code specified in the \$LAG 
+block and defines the delays at which the system needs to be computed.
+
+\end{Details}
+%
+\begin{Author}\relax
+Sebastien Bihorel (\email{sb.pmlab@gmail.com})
+\end{Author}
+%
+\begin{SeeAlso}\relax
+\code{\LinkA{dde.model}{dde.model}}, \code{\LinkA{make.dosing}{make.dosing}}
+\end{SeeAlso}

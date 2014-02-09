@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -173,11 +173,7 @@ fitmle <- function(problem=NULL,
   x0 <- estparam$value
   
   # Minimization of ML objective function
-  minimum <- fminsearch(fun=obj.fun,x=x0,options=options)
-  
-  # Rename and transpose minimum$x
-  minimum$estimations <- transpose(minimum$x)
-  minimum$x <- NULL
+  minimum <- fminsearch(fun=obj.fun,x0=x0,options=options)
   
   # Write output message in report file
   write(paste('\nAlgorithm used:', minimum$output$algorithm),
@@ -190,14 +186,15 @@ fitmle <- function(problem=NULL,
         file=files$report,append=TRUE,sep='\n')
   write(sprintf('Number of function evaluations: %d', minimum$output$funcCount),
         file=files$report,append=TRUE,sep='\n')
-  write(sprintf('Negative log likelood: %f', minimum$fval),
+  write(sprintf('Negative log likelood: %f', minimum$fopt),
         file=files$report,append=TRUE,sep='\n')
   
   # Model parameter estimation constrained to the defined intervals
-  estimations <- bound.parameters(x=minimum$estimations,lb=estparam$lb,estparam$ub)
+  estimations <- bound.parameters(x=as.vector(neldermead.get(minimum,'-xopt')),
+      lb=estparam$lb,estparam$ub)
   
   # Final value of the objective function
-  fval <- minimum$fval
+  fval <- minimum$fopt
   
   varargout <- list(estimations=estimations,fval=fval)
   

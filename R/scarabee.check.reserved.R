@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2011 Sebastien Bihorel
+#Copyright (c) 2009-2014 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.
@@ -20,8 +20,7 @@
 
 scarabee.check.reserved <- function(names=NULL, covnames=NULL){
   
-  reserved <- c(paste('D',1:25,sep=''), paste('R',1:25,sep=''),
-                paste('y',1:25,sep=''),
+  reserved <- c(paste('y',1:25,sep=''),
                 'x', 'dosing', 'xdata', 'covdata', 'issim', 'parms', 'tspan', 
                 't', 'time', 'f', 'scale', 'dydt', 'delays')
   
@@ -29,7 +28,7 @@ scarabee.check.reserved <- function(names=NULL, covnames=NULL){
     if (any(reserved%in%names)){
       hits <- paste(reserved[reserved%in%names], collapse=', ')
       stop(paste('model parameters cannot use reserved names.',
-                 'Please, rename the following\  parameter(s):\n  ',hits))
+                 'Please, rename the following parameter(s):\n  ',hits))
     }
   }
   
@@ -37,7 +36,7 @@ scarabee.check.reserved <- function(names=NULL, covnames=NULL){
     if (any(toupper(covnames)%in%names)){
       hits <- paste(toupper(covnames)[toupper(covnames)%in%names], collapse=', ')
       stop(paste('model parameters cannot use covariate names.',
-                 'Please, rename the following\  parameter(s):\n  ',hits))
+                 'Please, rename the following parameter(s):\n  ',hits))
     }
   }
 }
