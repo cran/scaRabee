@@ -1,5 +1,5 @@
 
-#Copyright (c) 2009-2014 Sebastien Bihorel
+#Copyright (c) 2009-2022 Sebastien Bihorel
 #All rights reserved.
 #
 #This file is part of scaRabee.

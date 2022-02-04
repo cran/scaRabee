@@ -1,4 +1,4 @@
-%Copyright (c) 2009-2014 Sebastien Bihorel
+%Copyright (c) 2009-2022 Sebastien Bihorel
 %All rights reserved.
 %
 %This file is part of scaRabee.
@@ -32,8 +32,8 @@
 \tabular{ll}{
 Package: \tab scaRabee\cr
 Type: \tab Package\cr
-Version: \tab 1.1-3\cr
-Date: \tab 2014-02-09\cr
+Version: \tab 1.1-4\cr
+Date: \tab 2022-02-04\cr
 License: \tab GPL-v3 \cr
 LazyLoad: \tab yes
 }
@@ -51,7 +51,7 @@ Please, refer to the vignette to learn how to run analyses with \pkg{scaRabee}
 and read more about the methods used in \pkg{scaRabee}.
 
 \pkg{scaRabee} is  available on the Comprehensive R Archive Network and also at:
-\url{http://code.google.com/p/pmlab/}
+\url{https://github.com/sbihorel/scaRabee}
 
 }
 
